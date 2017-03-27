@@ -15,12 +15,12 @@ def download_cifar10():
     return fnames
 
 if __name__ == '__main__':
+    # download data
+#    (train_fname, val_fname) = download_cifar10()
     data_dir='../../../../mxnet/example/image-classification/data'
     fnames = (os.path.join(data_dir,"cifar10_train.rec"),
 	          os.path.join(data_dir,"cifar10_val.rec"))
     (train_fname, val_fname) = fnames
-    # download data
-#    (train_fname, val_fname) = download_cifar10()
 
     # parse args
     parser = argparse.ArgumentParser(description="train cifar10",
@@ -31,8 +31,8 @@ if __name__ == '__main__':
     data.set_data_aug_level(parser, 2)
     parser.set_defaults(
         # network
-        network        = 'resnet',
-        num_layers     = 110,
+        network        = 'my_model',
+#        num_layers     = 110,
         # data
         data_train     = train_fname,
         data_val       = val_fname,
@@ -41,7 +41,7 @@ if __name__ == '__main__':
         image_shape    = '3,28,28',
         pad_size       = 4,
         # train
-        batch_size     = 128,
+        batch_size     = 32,
         num_epochs     = 300,
         lr             = .05,
         lr_step_epochs = '200,250',
