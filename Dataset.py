@@ -235,67 +235,68 @@ def parse_args(in_dataset_dir, out_dataset_dir, resize):
     return args
 
 def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
-    if not os.path.exists(in_dataset_dir):
-        return print('Dataset directory is Wrong.')
+    if framework == 4:
+        if not os.path.exists(in_dataset_dir):
+            return print('Dataset directory is Wrong.')
     
-    if not os.listdir(in_dataset_dir):
-        return print('Dataset is not found.')
+        if not os.listdir(in_dataset_dir):
+            return print('Dataset is not found.')
     
-    if not os.path.exists(out_dataset_dir):
-        print("out dataset directory is not found. We make it")
-        os.makedirs(out_dataset_dir)
+        if not os.path.exists(out_dataset_dir):
+            print("out dataset directory is not found. We make it")
+            os.makedirs(out_dataset_dir)
 
-    args = parse_args(in_dataset_dir, out_dataset_dir, resize)
+        args = parse_args(in_dataset_dir, out_dataset_dir, resize)
 
-    make_list(args) # make dataset.lst file
+        make_list(args) # make dataset.lst file
 
-    if os.path.isdir(args.out):
-        working_dir = args.out
-    else:
-        working_dir = os.path.dirname(args.out)
-    files = [os.path.join(working_dir, fname) for fname in os.listdir(working_dir)
-                if os.path.isfile(os.path.join(working_dir, fname))]
-    count = 0
-    for fname in files:
-        if fname.startswith(args.out) and fname.endswith('.lst'):
-            count += 1
-            image_list = read_list(fname)
+        if os.path.isdir(args.out):
+            working_dir = args.out
+        else:
+            working_dir = os.path.dirname(args.out)
+        files = [os.path.join(working_dir, fname) for fname in os.listdir(working_dir)
+                    if os.path.isfile(os.path.join(working_dir, fname))]
+        count = 0
+        for fname in files:
+            if fname.startswith(args.out) and fname.endswith('.lst'):
+                count += 1
+                image_list = read_list(fname)
 
-            # -- write_record -- #
-            logger = logging.getLogger('single_process')
-            filehandler = logging.FileHandler('./create_train_db.log','w')
-            streamhandler = logging.StreamHandler()
-            formatter = logging.Formatter('[%(filename)s|%(asctime)s] %(message)s')
-            filehandler.setFormatter(formatter)
-            streamhandler.setFormatter(formatter)
-            logger.addHandler(filehandler)
-            logger.addHandler(streamhandler)
-            logger.setLevel(logging.DEBUG)
+                # -- write_record -- #
+                logger = logging.getLogger('single_process')
+                filehandler = logging.FileHandler('./create_train_db.log','w')
+                streamhandler = logging.StreamHandler()
+                formatter = logging.Formatter('[%(filename)s|%(asctime)s] %(message)s')
+                filehandler.setFormatter(formatter)
+                streamhandler.setFormatter(formatter)
+                logger.addHandler(filehandler)
+                logger.addHandler(streamhandler)
+                logger.setLevel(logging.DEBUG)
 				
-            import queue
-            q_out = queue.Queue()
-            fname = os.path.basename(fname)
-            fname_rec = os.path.splitext(fname)[0] + '.rec'
-            fname_idx = os.path.splitext(fname)[0] + '.idx'
-            record = mx.recordio.MXIndexedRecordIO(os.path.join(working_dir, fname_idx),
-                                                    os.path.join(working_dir, fname_rec), 'w')
-            cnt = 0
-            pre_time = time.time()
-            for i, item in enumerate(image_list):
-                image_encode(args, i, item, q_out)
-                if q_out.empty():
-                    continue
-                _, s, _ = q_out.get()
-                record.write_idx(item[0], s)
-                if cnt % 1000 == 0:
-                    cur_time = time.time()
-                    logger.info('time:{}, count:{}'.format(cur_time - pre_time, cnt))
-                    pre_time = cur_time
-                cnt += 1
-    if not count:
-        print('Did not find and list file with prefix %s'%args.out)
+                import queue
+                q_out = queue.Queue()
+                fname = os.path.basename(fname)
+                fname_rec = os.path.splitext(fname)[0] + '.rec'
+                fname_idx = os.path.splitext(fname)[0] + '.idx'
+                record = mx.recordio.MXIndexedRecordIO(os.path.join(working_dir, fname_idx),
+                                                        os.path.join(working_dir, fname_rec), 'w')
+                cnt = 0
+                pre_time = time.time()
+                for i, item in enumerate(image_list):
+                    image_encode(args, i, item, q_out)
+                    if q_out.empty():
+                        continue
+                    _, s, _ = q_out.get()
+                    record.write_idx(item[0], s)
+                    if cnt % 1000 == 0:
+                        cur_time = time.time()
+                        logger.info('time:{}, count:{}'.format(cur_time - pre_time, cnt))
+                        pre_time = cur_time
+                    cnt += 1
+        if not count:
+            print('Did not find and list file with prefix %s'%args.out)
 
-    return print('Dataset creating finished')
+        return print('Dataset creating finished')
 
 def Dataset_result(out_dataset_dir):
     found_dir = os.path.exists(out_dataset_dir)
@@ -315,9 +316,9 @@ def Dataset_result(out_dataset_dir):
 
     return found_dataset
 
+in_dataset_dir = 'D:\Github\dataset\img\mydataset'
+out_dataset_dir = 'D:\Github\dataset\img\mydataset\out'
 
 if __name__ == '__main__':
-    in_dataset_dir = 'D:\Github\dataset\img\mydataset'
-    out_dataset_dir = 'D:\Github\dataset\img\mydataset\out'
 
     Dataset_create(in_dataset_dir,out_dataset_dir,32,4)
