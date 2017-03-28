@@ -264,7 +264,7 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
 
                 # -- write_record -- #
                 logger = logging.getLogger('single_process')
-                filehandler = logging.FileHandler('./create_train_db.log','w')
+                filehandler = logging.FileHandler(out_dataset_dir+'./create_train_db.log','w')
                 streamhandler = logging.StreamHandler()
                 formatter = logging.Formatter('[%(filename)s|%(asctime)s] %(message)s')
                 filehandler.setFormatter(formatter)
