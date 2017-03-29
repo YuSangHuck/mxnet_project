@@ -327,5 +327,5 @@ out_dataset_dir = in_dataset_dir + '/out_dataset'
 
 if __name__ == '__main__':
 
-    #Dataset_create(in_dataset_dir,out_dataset_dir,256,4)
+    #Dataset_create(in_dataset_dir,out_dataset_dir,32,4)
     print(Dataset_result(out_dataset_dir))
