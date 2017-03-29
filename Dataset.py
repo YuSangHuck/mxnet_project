@@ -105,11 +105,7 @@ def image_encode(args, i, item, q_out):
             q_out.put((i, None, item))
         return
     try:
-        print('Error point! Check cv2.imread')
-        print('fulpath : ',fullpath)
-        print('args.color : ',args.color)
         img = cv2.imread(fullpath, args.color)
-        print('c7')
     except:
         traceback.print_exc()
         print('imread error trying to load file: %s ' % fullpath)
@@ -120,7 +116,6 @@ def image_encode(args, i, item, q_out):
         q_out.put((i, None, item))
         return
     if args.center_crop:
-        print('center_crop:{}'.format(args.center_crop))
         if img.shape[0] > img.shape[1]:
             margin = (img.shape[0] - img.shape[1]) / 2;
             img = img[margin:margin + img.shape[1], :]
@@ -128,18 +123,15 @@ def image_encode(args, i, item, q_out):
             margin = (img.shape[1] - img.shape[0]) / 2;
             img = img[:, margin:margin + img.shape[0]]
     if args.resize:
-        print('resize:{}'.format(args.resize))
         if img.shape[0] > img.shape[1]:
-            newsize = (args.resize, img.shape[0] * args.resize / img.shape[1])
+            newsize = (args.resize, int(img.shape[0] * args.resize / img.shape[1]))
         else:
-            newsize = (img.shape[1] * args.resize / img.shape[0], args.resize)
+            newsize = (int(img.shape[1] * args.resize / img.shape[0]), args.resize)
         img = cv2.resize(img, newsize)
 
     try:
         s = mx.recordio.pack_img(header, img, quality=args.quality, img_fmt=args.encoding)
-        print('train q_out.put')
         q_out.put((i, s, item))
-        print('success')
     except Exception as e:
         traceback.print_exc()
         print('pack_img error on file: %s' % fullpath, e)
@@ -196,7 +188,7 @@ def parse_args(in_dataset_dir, out_dataset_dir, resize):
                         help='If this is set im2rec will create image list(s) by traversing root folder\
         and output to <prefix>.lst.\
         Otherwise im2rec will read <prefix>.lst and create a database at <prefix>.rec')
-    cgroup.add_argument('--exts', type=list, default=['.jpeg', '.jpg'],
+    cgroup.add_argument('--exts', type=list, default=['.jpeg', '.jpg', '.png'],
                         help='list of acceptable image extensions.')
     cgroup.add_argument('--chunks', type=int, default=1, help='number of chunks.')
     cgroup.add_argument('--train-ratio', type=float, default=0.9,
@@ -272,7 +264,7 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
 
                 # -- write_record -- #
                 logger = logging.getLogger('single_process')
-                filehandler = logging.FileHandler(out_dataset_dir+'./create_train_db.log','w')
+                filehandler = logging.FileHandler(out_dataset_dir+'/create_train_db.log','w')
                 streamhandler = logging.StreamHandler()
                 formatter = logging.Formatter('[%(filename)s|%(asctime)s] %(message)s')
                 filehandler.setFormatter(formatter)
@@ -326,11 +318,14 @@ def Dataset_result(out_dataset_dir):
 
 
 # for windows settings
-in_dataset_dir = 'D:\Github\dataset\img\mydataset'
-out_dataset_dir = 'D:\Github\dataset\img\mydataset\out'
+#in_dataset_dir = 'D:\Github\dataset\img\mydataset'
+#out_dataset_dir = 'D:\Github\dataset\img\mydataset\out'
 
 # for linux settings
+in_dataset_dir = '/root/git/dataset'
+out_dataset_dir = in_dataset_dir + '/out_dataset'
 
 if __name__ == '__main__':
 
-    Dataset_create(in_dataset_dir,out_dataset_dir,32,4)
+    #Dataset_create(in_dataset_dir,out_dataset_dir,256,4)
+    print(Dataset_result(out_dataset_dir))
