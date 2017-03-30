@@ -195,9 +195,12 @@ def _load_model(args, rank=0):
 def _save_model(args, rank=0):
     if args.model_prefix is None:
         return None
-    dst_dir = os.path.dirname(args.model_prefix)
+#    dst_dir = os.path.dirname(args.model_prefix)
+    dst_dir = args.model_prefix
+    args.model_prefix = dst_dir + '/' + args.network    
     if not os.path.isdir(dst_dir):
-        os.mkdir(dst_dir)
+#        os.mkdir(dst_dir)
+        os.makedirs(dst_dir)
     return mx.callback.do_checkpoint(args.model_prefix if rank == 0 else "%s-%d" % (
         args.model_prefix, rank))
 
@@ -367,22 +370,23 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         set_data_aug_level(parser, 2)
         parser.set_defaults(
             network        = network_name,#
-            num_layers     = 50,#
+            num_layers     = 100,
             # data
             data_train     = Dataset.Dataset_result(dataset_dir)[0],
-            data_val       = Dataset.Dataset_result(dataset_dir)[1], # check Dataset.Dataset_result(dataset_dir)
-            num_classes    = 10,
-            num_examples  = 50000,
-            image_shape    = '3,28,28',
+            data_val       = None,#Dataset.Dataset_result(dataset_dir)[1], 
+            num_classes    = 102,
+            num_examples  = 69236,
+            image_shape    = '3,32,32',
             pad_size       = 4,
             # train
+#            gpus          = '0',
             batch_size     = mb_size,
             num_epochs     = max_epochs,
             lr             = .05,
             lr_step_epochs = '200,250',
             )
         args = parser.parse_args()
-#        args.prefix_model=out_model_dir # maybe change abs_path
+        args.model_prefix=out_model_dir # maybe change abs_path
 
         from importlib import import_module
         net = import_module('network.'+args.network)
@@ -398,17 +402,15 @@ def Train_result(model_dir):
 
 
 # for windows settings
-in_dataset_dir = 'D:\Github\dataset\img\mydataset'
-out_dataset_dir = 'D:\Github\dataset\img\mydataset\out'
+#in_dataset_dir = 'D:\Github\dataset\img\mydataset'
+#out_dataset_dir = 'D:\Github\dataset\img\mydataset\out'
 
 # for linux settings
-in_dataset_dir = '/root/git/dataset'
-out_dataset_dir = in_dataset_dir + '/out_dataset'
-out_model_dir = out_dataset_dir + '/model'
+in_dataset_dir = Dataset.in_dataset_dir
+out_dataset_dir = Dataset.out_dataset_dir
+out_model_dir = Dataset.out_dataset_dir + '/model_10/model_100'
+
 if __name__ == '__main__':
-    Train_create(dataset_dir=out_dataset_dir,
-    framework=4,
-    out_model_dir=out_model_dir,
-    max_epochs=50,
-    mb_size=16,
-    network_name='lenet')
+    Train_create(dataset_dir=out_dataset_dir, framework=4, out_model_dir=out_model_dir, max_epochs=50, mb_size=64, network_name='lenet')
+
+#    print(Train_result(model_dir = out_model_dir))
