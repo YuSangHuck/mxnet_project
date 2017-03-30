@@ -191,9 +191,9 @@ def parse_args(in_dataset_dir, out_dataset_dir, resize):
     cgroup.add_argument('--exts', type=list, default=['.jpeg', '.jpg', '.png'],
                         help='list of acceptable image extensions.')
     cgroup.add_argument('--chunks', type=int, default=1, help='number of chunks.')
-    cgroup.add_argument('--train-ratio', type=float, default=0.9,
+    cgroup.add_argument('--train-ratio', type=float, default=1.,
                         help='Ratio of images to use for training.')
-    cgroup.add_argument('--test-ratio', type=float, default=0.1,
+    cgroup.add_argument('--test-ratio', type=float, default=0.,
                         help='Ratio of images to use for testing.')
     cgroup.add_argument('--recursive', type=bool, default=True,
                         help='If true recursively walk through subdirs and assign an unique label\
@@ -257,11 +257,12 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         files = [os.path.join(working_dir, fname) for fname in os.listdir(working_dir)
                     if os.path.isfile(os.path.join(working_dir, fname))]
         count = 0
+        cnt = 0
         for fname in files:
             if fname.startswith(args.out) and fname.endswith('.lst'):
+                print(fname)
                 count += 1
                 image_list = read_list(fname)
-
                 # -- write_record -- #
                 logger = logging.getLogger('single_process')
                 filehandler = logging.FileHandler(out_dataset_dir+'/create_train_db.log','w')
@@ -280,17 +281,19 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
                 fname_idx = os.path.splitext(fname)[0] + '.idx'
                 record = mx.recordio.MXIndexedRecordIO(os.path.join(working_dir, fname_idx),
                                                         os.path.join(working_dir, fname_rec), 'w')
-                cnt = 0
                 pre_time = time.time()
                 for i, item in enumerate(image_list):
                     image_encode(args, i, item, q_out)
                     if q_out.empty():
+#                        print('test')
                         continue
                     _, s, _ = q_out.get()
                     record.write_idx(item[0], s)
                     if cnt % 1000 == 0:
                         cur_time = time.time()
-                        logger.info('time:{}, count:{}'.format(cur_time - pre_time, cnt))
+#                        print('test')
+                        logger.info('time:{}, count:{}'.format(cur_time - pre_time, cnt)) # multi .log file when multi .lst file exist
+#                        print('test2')
                         pre_time = cur_time
                     cnt += 1
         if not count:
@@ -322,10 +325,12 @@ def Dataset_result(out_dataset_dir):
 #out_dataset_dir = 'D:\Github\dataset\img\mydataset\out'
 
 # for linux settings
-in_dataset_dir = '/root/git/dataset'
+in_dataset_dir = '/root/git/dataset/img/101_ObjectCategories'
 out_dataset_dir = in_dataset_dir + '/out_dataset'
+#in_dataset_dir = '/root/mxnet/example/image-classification/data'
+#out_dataset_dir = in_dataset_dir + '/out_dataset'
 
 if __name__ == '__main__':
 
-    #Dataset_create(in_dataset_dir,out_dataset_dir,32,4)
-    print(Dataset_result(out_dataset_dir))
+    Dataset_create(in_dataset_dir,out_dataset_dir,32,4)
+    #print('result[0]=',Dataset_result(out_dataset_dir)[0])
