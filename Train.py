@@ -402,8 +402,13 @@ in_dataset_dir = 'D:\Github\dataset\img\mydataset'
 out_dataset_dir = 'D:\Github\dataset\img\mydataset\out'
 
 # for linux settings
-in_dataset_dir = '/root/git/datasetimgmydataset'
-out_dataset_dir = '/root/git/datasetimgmydataset/out'
-
+in_dataset_dir = '/root/git/dataset'
+out_dataset_dir = in_dataset_dir + '/out_dataset'
+out_model_dir = out_dataset_dir + '/model'
 if __name__ == '__main__':
-    Train_create(out_dataset_dir,out_model_dir,max_epochs=50,mb_size=16,network_name='lenet')
+    Train_create(dataset_dir=out_dataset_dir,
+    framework=4,
+    out_model_dir=out_model_dir,
+    max_epochs=50,
+    mb_size=16,
+    network_name='lenet')
