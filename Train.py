@@ -348,16 +348,21 @@ def fit(args, network, data_loader, **kwargs):
         allow_missing      = True,
         monitor            = monitor)
 
+def read_num(file):
+    num = 0
+    with open(file) as file:
+        while True:
+            line = file.readline()
+            if not line:
+                break
+            num += 1
+    return num
+
 ########################################################################################################################################################################################################
 ##############################################################################      Train.py        ####################################################################################################
 ########################################################################################################################################################################################################
 
-
-########################################################################################################################################################################################################
-##############################################################################      Train.py        ####################################################################################################
-########################################################################################################################################################################################################
-
-# gpus / model_prefix / num_classes / num-examples / image_shape
+# gpus / num_classes / num-examples / image_shape
 
 def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, network_name):
     if framework == 4:
@@ -372,10 +377,10 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
             network        = network_name,#
             num_layers     = 100,
             # data
-            data_train     = Dataset.Dataset_result(dataset_dir)[0],
+            data_train     = Dataset.Dataset_result(dataset_dir)[1],
             data_val       = None,#Dataset.Dataset_result(dataset_dir)[1], 
-            num_classes    = 102,
-            num_examples  = 69236,
+            num_classes    = read_num(Dataset.Dataset_result(out_dataset_dir)[3]),
+            num_examples  = read_num(Dataset.Dataset_result(out_dataset_dir)[2]),
             image_shape    = '3,32,32',
             pad_size       = 4,
             # train
@@ -408,9 +413,9 @@ def Train_result(model_dir):
 # for linux settings
 in_dataset_dir = Dataset.in_dataset_dir
 out_dataset_dir = Dataset.out_dataset_dir
-out_model_dir = Dataset.out_dataset_dir + '/model_10/model_100'
+out_model_dir = Dataset.out_dataset_dir + '/model'
 
 if __name__ == '__main__':
-    Train_create(dataset_dir=out_dataset_dir, framework=4, out_model_dir=out_model_dir, max_epochs=50, mb_size=64, network_name='lenet')
+#    Train_create(dataset_dir=out_dataset_dir, framework=4, out_model_dir=out_model_dir, max_epochs=50, mb_size=64, network_name='lenet')
 
-#    print(Train_result(model_dir = out_model_dir))
+    print(Train_result(model_dir = out_model_dir))
