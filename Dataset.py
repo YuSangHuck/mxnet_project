@@ -313,9 +313,9 @@ def Dataset_result(out_dataset_dir):
         return print('Dataset is not found')
     
     for found_file in found_files:
-        if os.path.splitext(found_file)[1] in ('.rec'):
-            found_file = os.path.join(out_dataset_dir,found_file)
-            found_dataset.append(found_file)
+#        if os.path.splitext(found_file)[1] in ('.rec'):
+        found_file = os.path.join(out_dataset_dir,found_file)
+        found_dataset.append(found_file)
 
     return found_dataset
 
@@ -325,12 +325,12 @@ def Dataset_result(out_dataset_dir):
 #out_dataset_dir = 'D:\Github\dataset\img\mydataset\out'
 
 # for linux settings
-in_dataset_dir = '/root/git/dataset/img/101_ObjectCategories'
+in_dataset_dir = '/root/git/dataset/img/mydataset'
 out_dataset_dir = in_dataset_dir + '/out_dataset'
 #in_dataset_dir = '/root/mxnet/example/image-classification/data'
 #out_dataset_dir = in_dataset_dir + '/out_dataset'
 
 if __name__ == '__main__':
 
-    Dataset_create(in_dataset_dir,out_dataset_dir,32,4)
-    #print('result[0]=',Dataset_result(out_dataset_dir)[0])
+#    Dataset_create(in_dataset_dir,out_dataset_dir,32,4)
+    print(Dataset_result(out_dataset_dir))
