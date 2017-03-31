@@ -416,6 +416,6 @@ out_dataset_dir = Dataset.out_dataset_dir
 out_model_dir = Dataset.out_dataset_dir + '/model'
 
 if __name__ == '__main__':
-#    Train_create(dataset_dir=out_dataset_dir, framework=4, out_model_dir=out_model_dir, max_epochs=50, mb_size=64, network_name='lenet')
+    Train_create(dataset_dir=out_dataset_dir, framework=4, out_model_dir=out_model_dir, max_epochs=50, mb_size=64, network_name='lenet')
 
-    print(Train_result(model_dir = out_model_dir))
+#    print(Train_result(model_dir = out_model_dir))
