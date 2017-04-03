@@ -373,6 +373,9 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         add_data_args(parser) # change here
         add_data_aug_args(parser)
         set_data_aug_level(parser, 2)
+        num_classes = read_num(Dataset.Dataset_result(out_dataset_dir)[3])
+        num_examples  = read_num(Dataset.Dataset_result(out_dataset_dir)[2])
+       
         parser.set_defaults(
             network        = network_name,#
             num_layers     = 100,
@@ -389,6 +392,7 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
             num_epochs     = max_epochs,
             lr             = .05,
             lr_step_epochs = '200,250',
+            disp_batches   = int(num_examples/mb_size/1),
             )
         args = parser.parse_args()
         args.model_prefix=out_model_dir # maybe change abs_path
