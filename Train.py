@@ -3,6 +3,7 @@ from mxnet.io import DataBatch, DataIter
 import random
 import numpy as np
 import logging
+logger = logging.getLogger('Train')
 import os
 import time
 import argparse
@@ -259,10 +260,18 @@ def fit(args, network, data_loader, **kwargs):
     kv = mx.kvstore.create(args.kv_store)
 
     # logging
-    head = '%(asctime)-15s Node[' + str(kv.rank) + '] %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=head)
-    logging.info('start with arguments %s', args)
-
+#    head = '%(asctime)-15s Node[' + str(kv.rank) + '] %(message)s'
+#    logging.basicConfig(level=logging.DEBUG, format=head)
+#    logging.info('start with arguments %s', args)
+    logger.setLevel(logging.DEBUG)
+    filehandler = logging.FileHandler(os.path.join(args.model_prefix,'create_train_db.log'),'w')
+    streamhandler = logging.StreamHandler()
+    formatter = logging.Formatter('[%(asctime)s,%(message)s')
+    filehandler.setFormatter(formatter)
+    streamhandler.sefFormatter(formatter)
+    logger.addHandler(filehandler)
+    logger.addHandler(streamhandler)
+    
     # data iterators
     (train, val) = data_loader(args, kv)
     if args.test_io:
@@ -271,9 +280,11 @@ def fit(args, network, data_loader, **kwargs):
             for j in batch.data:
                 j.wait_to_read()
             if (i+1) % args.disp_batches == 0:
-                logging.info('Batch [%d]\tSpeed: %.2f samples/sec' % (
-                    i, args.disp_batches*args.batch_size/(time.time()-tic)))
+                message = ('Batch [%d]\tSpeed: %.2f samples/sec'%(i, args.disp_batches*args.batch_size/(time.time()-tic)))
+#                logging.info('Batch [%d]\tSpeed: %.2f samples/sec' % (
+#                    i, args.disp_batches*args.batch_size/(time.time()-tic)))
                 tic = time.time()
+                logger.info(message)
 
         return
 
