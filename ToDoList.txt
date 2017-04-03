@@ -1,0 +1,5 @@
+1.in Train.py, rm all codes except model.fit / check the result
+-> same operation
+-> real code is baseModule.fit
+
+maybe some settings will be need
