@@ -197,12 +197,11 @@ def _save_model(args, rank=0):
     if args.model_prefix is None:
         return None
 #    dst_dir = os.path.dirname(args.model_prefix)
-    dst_dir = args.model_prefix
-    args.model_prefix = dst_dir + '/' + args.network    
-    if not os.path.isdir(dst_dir):
+    dst_dir = os.path.join(args.model_prefix,args.network)
+    if not os.path.isdir(args.model_prefix):
 #        os.mkdir(dst_dir)
-        os.makedirs(dst_dir)
-    return mx.callback.do_checkpoint(args.model_prefix if rank == 0 else "%s-%d" % (
+        os.makedirs(args.model_prefix)
+    return mx.callback.do_checkpoint(dst_dir if rank == 0 else "%s-%d" % (
         args.model_prefix, rank))
 
 def add_fit_args(parser):
