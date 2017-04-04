@@ -316,7 +316,7 @@ def Dataset_result(out_dataset_dir):
         if os.path.splitext(found_file)[1] in ('.idx','.lst','.rec','.txt','.log'):
             found_file = os.path.join(out_dataset_dir,found_file)
             found_dataset.append(found_file)
-
+    found_dataset.sort()
     return found_dataset
 
 
