@@ -267,7 +267,7 @@ def fit(args, network, data_loader, **kwargs):
     streamhandler = logging.StreamHandler()
     formatter = logging.Formatter('[%(asctime)s,%(message)s')
     filehandler.setFormatter(formatter)
-    streamhandler.sefFormatter(formatter)
+    streamhandler.setFormatter(formatter)
     logger.addHandler(filehandler)
     logger.addHandler(streamhandler)
     
@@ -383,21 +383,23 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         add_data_args(parser) # change here
         add_data_aug_args(parser)
         set_data_aug_level(parser, 2)
-        num_classes = read_num(Dataset.Dataset_result(out_dataset_dir)[3])
-        num_examples  = read_num(Dataset.Dataset_result(out_dataset_dir)[2])
-       
+        num_classes = read_num(Dataset.Dataset_result(out_dataset_dir)[4])#read labes.txt
+        num_examples  = read_num(Dataset.Dataset_result(out_dataset_dir)[1])#read dataset.lst
+        data_train = Dataset.Dataset_result(dataset_dir)[2]#dataset.rec       
+        
+        
         parser.set_defaults(
             network        = network_name,#
             num_layers     = 100,
             # data
-            data_train     = Dataset.Dataset_result(dataset_dir)[1],
+            data_train     = data_train,
             data_val       = None,#Dataset.Dataset_result(dataset_dir)[1], 
-            num_classes    = read_num(Dataset.Dataset_result(out_dataset_dir)[3]),
-            num_examples  = read_num(Dataset.Dataset_result(out_dataset_dir)[2]),
+            num_classes    = num_classes,
+            num_examples   = num_examples,
             image_shape    = '3,32,32',
             pad_size       = 4,
             # train
-#            gpus          = '0',
+            gpus          = '0',
             batch_size     = mb_size,
             num_epochs     = max_epochs,
             lr             = .05,
