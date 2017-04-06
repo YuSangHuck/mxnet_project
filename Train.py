@@ -258,19 +258,6 @@ def fit(args, network, data_loader, **kwargs):
     # kvstore
     kv = mx.kvstore.create(args.kv_store)
 
-    # logging
-#    head = '%(asctime)-15s Node[' + str(kv.rank) + '] %(message)s'
-#    logging.basicConfig(level=logging.DEBUG, format=head)
-#    logging.info('start with arguments %s', args)
-    logger.setLevel(logging.DEBUG)
-    filehandler = logging.FileHandler(os.path.join(args.model_prefix,'create_train_db.log'),'w')
-    streamhandler = logging.StreamHandler()
-    formatter = logging.Formatter('[%(asctime)s,%(message)s')
-    filehandler.setFormatter(formatter)
-    streamhandler.setFormatter(formatter)
-    logger.addHandler(filehandler)
-    logger.addHandler(streamhandler)
-    
     # data iterators
     (train, val) = data_loader(args, kv)
     if args.test_io:
@@ -279,14 +266,10 @@ def fit(args, network, data_loader, **kwargs):
             for j in batch.data:
                 j.wait_to_read()
             if (i+1) % args.disp_batches == 0:
-                message = ('Batch [%d]\tSpeed: %.2f samples/sec'%(i, args.disp_batches*args.batch_size/(time.time()-tic)))
-#                logging.info('Batch [%d]\tSpeed: %.2f samples/sec' % (
-#                    i, args.disp_batches*args.batch_size/(time.time()-tic)))
+                logging.info('Batch [%d]\tSpeed: %.2f samples/sec' % (
+                    i, args.disp_batches*args.batch_size/(time.time()-tic)))
                 tic = time.time()
-                logger.info(message)
-
         return
-
 
     # load model
     if 'arg_params' in kwargs and 'aux_params' in kwargs:
@@ -299,7 +282,14 @@ def fit(args, network, data_loader, **kwargs):
 
     # save model
     checkpoint = _save_model(args, kv.rank)
-
+    
+    # logging
+    format = '[%(levelname)s:%(asctime)s],%(message)s'
+    logging.basicConfig(filename = os.path.join(args.model_prefix,'create_train_db.log'),
+                        filemode = 'w',
+                        format = format,
+                        level=logging.DEBUG)
+    
     # devices for training
     devs = mx.cpu() if args.gpus is None or args.gpus is '' else [
         mx.gpu(int(i)) for i in args.gpus.split(',')]
@@ -372,9 +362,8 @@ def read_num(file):
 ##############################################################################      Train.py        ####################################################################################################
 ########################################################################################################################################################################################################
 
-# gpus / num_classes / num-examples / image_shape
 
-def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, network_name):
+def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, network_name, devs):
     if framework == 4:
         parser = argparse.ArgumentParser(description='Train',
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -383,9 +372,21 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         add_data_args(parser) # change here
         add_data_aug_args(parser)
         set_data_aug_level(parser, 2)
-        num_classes = read_num(Dataset.Dataset_result(out_dataset_dir)[4])#read labes.txt
-        num_examples  = read_num(Dataset.Dataset_result(out_dataset_dir)[1])#read dataset.lst
-        data_train = Dataset.Dataset_result(dataset_dir)[2]#dataset.rec       
+
+        num_examples = 0
+        label_file = [labels for labels in Dataset.Dataset_result(out_dataset_dir) if 'labels.txt' in labels][0]
+        if any('dataset.' in split for split in Dataset.Dataset_result(out_dataset_dir)):
+            data_train = [data for data in Dataset.Dataset_result(out_dataset_dir) if '.rec' in data][0]
+            data_val = None
+            lst = [lst for lst in Dataset.Dataset_result(out_dataset_dir) if '.lst' in lst]
+        else:
+            data = [data for data in Dataset.Dataset_result(out_dataset_dir) if '.rec' in data]
+            data_train = [train for train in data if 'train.rec' in train][0]
+            data_val = [val for val in data if 'test.rec' in val][0]
+            lst = [lst for lst in Dataset.Dataset_result(out_dataset_dir) if '.lst' in lst]
+        for lstfile in lst:
+            num_examples += read_num(lstfile)
+        num_classes = read_num(label_file)
         
         
         parser.set_defaults(
@@ -393,16 +394,16 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
             num_layers     = 100,
             # data
             data_train     = data_train,
-            data_val       = None,#Dataset.Dataset_result(dataset_dir)[1], 
+            data_val       = data_val,
             num_classes    = num_classes,
             num_examples   = num_examples,
             image_shape    = '3,32,32',
-            pad_size       = 4,
+            pad_size       = 0,
             # train
-            gpus          = '0',
+            gpus          = devs,
             batch_size     = mb_size,
             num_epochs     = max_epochs,
-            lr             = .05,
+            lr             = .005,
             lr_step_epochs = '200,250',
             disp_batches   = int(num_examples/mb_size/1),
             )
@@ -432,6 +433,13 @@ out_dataset_dir = Dataset.out_dataset_dir
 out_model_dir = Dataset.out_dataset_dir + '/model'
 
 if __name__ == '__main__':
-    Train_create(dataset_dir=out_dataset_dir, framework=4, out_model_dir=out_model_dir, max_epochs=50, mb_size=64, network_name='lenet')
 
-#    print(Train_result(model_dir = out_model_dir))
+    Train_create(dataset_dir = out_dataset_dir, 
+                 framework = 4, 
+                 out_model_dir = out_model_dir, 
+                 max_epochs = 50, 
+                 mb_size = 128, 
+                 network_name = 'lenet', 
+                 devs = '1,2')
+    print(Train_result(model_dir = out_model_dir))
+
