@@ -243,7 +243,6 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
             return print('Dataset is not found.')
     
         if not os.path.exists(out_dataset_dir):
-            print("out dataset directory is not found. We make it")
             os.makedirs(out_dataset_dir)
 
         args = parse_args(in_dataset_dir, out_dataset_dir, resize)
@@ -258,22 +257,21 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
                     if os.path.isfile(os.path.join(working_dir, fname))]
         count = 0
         cnt = 0
+        logger = logging.getLogger('single_process')
+        filehandler = logging.FileHandler(out_dataset_dir+'/create_val_db.log','w')
+        streamhandler = logging.StreamHandler()
+        formatter = logging.Formatter('[%(filename)s|%(asctime)s] %(message)s')
+        filehandler.setFormatter(formatter)
+        streamhandler.setFormatter(formatter)
+        logger.addHandler(filehandler)
+        logger.addHandler(streamhandler)
+        logger.setLevel(logging.DEBUG)
+        
         for fname in files:
             if fname.startswith(args.out) and fname.endswith('.lst'):
-                print(fname)
                 count += 1
                 image_list = read_list(fname)
                 # -- write_record -- #
-                logger = logging.getLogger('single_process')
-                filehandler = logging.FileHandler(out_dataset_dir+'/create_val_db.log','w')
-                streamhandler = logging.StreamHandler()
-                formatter = logging.Formatter('[%(filename)s|%(asctime)s] %(message)s')
-                filehandler.setFormatter(formatter)
-                streamhandler.setFormatter(formatter)
-                logger.addHandler(filehandler)
-                logger.addHandler(streamhandler)
-                logger.setLevel(logging.DEBUG)
-				
                 import queue
                 q_out = queue.Queue()
                 fname = os.path.basename(fname)
@@ -285,15 +283,12 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
                 for i, item in enumerate(image_list):
                     image_encode(args, i, item, q_out)
                     if q_out.empty():
-#                        print('test')
                         continue
                     _, s, _ = q_out.get()
                     record.write_idx(item[0], s)
                     if cnt % 1000 == 0:
                         cur_time = time.time()
-#                        print('test')
-                        logger.info('time:{}, count:{}'.format(cur_time - pre_time, cnt)) # multi .log file when multi .lst file exist
-#                        print('test2')
+                        logger.info('time:{0:0.10f}, count:{1}'.format(cur_time - pre_time, cnt)) # multi .log file when multi .lst file exist
                         pre_time = cur_time
                     cnt += 1
         if not count:
@@ -332,5 +327,8 @@ out_dataset_dir = in_dataset_dir + '/../out_dataset'
 
 if __name__ == '__main__':
 
-    Dataset_create(in_dataset_dir,out_dataset_dir,32,4)
+    Dataset_create(in_dataset_dir = in_dataset_dir,
+                   out_dataset_dir = out_dataset_dir,
+                   resize = 32,
+                   framework = 4)
     print(Dataset_result(out_dataset_dir))
