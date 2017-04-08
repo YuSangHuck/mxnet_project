@@ -123,11 +123,13 @@ def image_encode(args, i, item, q_out):
             margin = (img.shape[1] - img.shape[0]) / 2;
             img = img[:, margin:margin + img.shape[0]]
     if args.resize:
-        if img.shape[0] > img.shape[1]:
-            newsize = (args.resize, int(img.shape[0] * args.resize / img.shape[1]))
-        else:
-            newsize = (int(img.shape[1] * args.resize / img.shape[0]), args.resize)
-        img = cv2.resize(img, newsize)
+#        if img.shape[0] > img.shape[1]:
+#            newsize = (args.resize, int(img.shape[0] * args.resize / img.shape[1]))
+#        else:
+#            newsize = (int(img.shape[1] * args.resize / img.shape[0]), args.resize)
+#        img = cv2.resize(img, newsize)
+#        print('({},{})'.format(args.resize, args.resize))
+        img = cv2.resize(img, (args.resize, args.resize))
 
     try:
         s = mx.recordio.pack_img(header, img, quality=args.quality, img_fmt=args.encoding)
@@ -188,7 +190,7 @@ def parse_args(in_dataset_dir, out_dataset_dir, resize):
                         help='If this is set im2rec will create image list(s) by traversing root folder\
         and output to <prefix>.lst.\
         Otherwise im2rec will read <prefix>.lst and create a database at <prefix>.rec')
-    cgroup.add_argument('--exts', type=list, default=['.jpeg', '.jpg', '.png'],
+    cgroup.add_argument('--exts', type=list, default=['.jpeg', '.jpg', '.png', '.bmp'],
                         help='list of acceptable image extensions.')
     cgroup.add_argument('--chunks', type=int, default=1, help='number of chunks.')
     cgroup.add_argument('--train-ratio', type=float, default=1.,
@@ -221,7 +223,7 @@ def parse_args(in_dataset_dir, out_dataset_dir, resize):
         1: Loads a color image. Any transparency of image will be neglected. It is the default flag.\
         0: Loads image in grayscale mode.\
         -1:Loads image as such including alpha channel.')
-    rgroup.add_argument('--encoding', type=str, default='.jpg', choices=['.jpg', '.png'],
+    rgroup.add_argument('--encoding', type=str, default='.png', choices=['.jpg', '.png'],
                         help='specify the encoding of the images.')
     rgroup.add_argument('--pack-label', type=bool, default=False,
         help='Whether to also pack multi dimensional label in the record file')
@@ -229,6 +231,13 @@ def parse_args(in_dataset_dir, out_dataset_dir, resize):
 
     args.resize = resize
     return args
+
+def make_info(out_dataset_dir, **kwargs):
+    abs_path_file = os.path.join(out_dataset_dir,'image_info.txt')
+    with open(abs_path_file,'w') as image_info:
+        for key in kwargs.keys():
+            image_info.write('{}={}\n'.format(key,kwargs[key]))
+    return
 
 ########################################################################################################################################################################################################
 ##############################################################################      Dataset.py      ####################################################################################################
@@ -245,8 +254,10 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         if not os.path.exists(out_dataset_dir):
             os.makedirs(out_dataset_dir)
 
-        args = parse_args(in_dataset_dir, out_dataset_dir, resize)
+        make_info(out_dataset_dir, channel = 3, size = resize)
 
+        args = parse_args(in_dataset_dir, out_dataset_dir, resize)
+        
         make_list(args) # make dataset.lst file
 
         if os.path.isdir(args.out):
@@ -329,6 +340,6 @@ if __name__ == '__main__':
 
     Dataset_create(in_dataset_dir = in_dataset_dir,
                    out_dataset_dir = out_dataset_dir,
-                   resize = 32,
+                   resize = 16,
                    framework = 4)
     print(Dataset_result(out_dataset_dir))
