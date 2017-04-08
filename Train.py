@@ -1,6 +1,5 @@
 import mxnet as mx
 from mxnet.io import DataBatch, DataIter
-import random
 import numpy as np
 import logging
 logger = logging.getLogger('Train')
@@ -9,6 +8,7 @@ import time
 import argparse
 import Dataset
 import network
+import re
 
 ########################################################################################################################################################################################################
 ##############################################################################      data.py         ####################################################################################################
@@ -358,6 +358,19 @@ def read_num(file):
             num += 1
     return num
 
+def read_info(file):
+    kwargs = {}
+    with open(file) as info:
+        while True:
+            line = info.readline()
+            if not line:
+                break
+            key = re.search('\w+',line)
+            value = re.search('\d+',line)
+            kwargs[key.group()] = value.group()
+         
+    return kwargs
+
 ########################################################################################################################################################################################################
 ##############################################################################      Train.py        ####################################################################################################
 ########################################################################################################################################################################################################
@@ -368,8 +381,8 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         parser = argparse.ArgumentParser(description='Train',
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-        add_fit_args(parser) # change here
-        add_data_args(parser) # change here
+        add_fit_args(parser) 
+        add_data_args(parser)
         add_data_aug_args(parser)
         set_data_aug_level(parser, 2)
 
@@ -388,7 +401,9 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
             num_examples += read_num(lstfile)
         num_classes = read_num(label_file)
         
-        
+        args = read_info(os.path.join(out_dataset_dir,'image_info.txt'))
+        image_shape    = '{},{},{}'.format(int(args['channel']),int(args['size']),int(args['size']))#'3,32,32',
+
         parser.set_defaults(
             network        = network_name,#
             num_layers     = 100,
@@ -397,7 +412,7 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
             data_val       = data_val,
             num_classes    = num_classes,
             num_examples   = num_examples,
-            image_shape    = '3,32,32',
+            image_shape    = image_shape, 
             pad_size       = 0,
             # train
             gpus          = devs,
@@ -413,7 +428,7 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         from importlib import import_module
         net = import_module('network.'+args.network)
         sym = net.get_symbol(**vars(args))
-
+        print(args.image_shape)
         fit(args, sym, get_rec_iter)
 
 def Train_result(model_dir):
@@ -437,9 +452,8 @@ if __name__ == '__main__':
     Train_create(dataset_dir = out_dataset_dir, 
                  framework = 4, 
                  out_model_dir = out_model_dir, 
-                 max_epochs = 50, 
+                 max_epochs = 5, 
                  mb_size = 128, 
                  network_name = 'lenet', 
-                 devs = '1,2')
+                 devs = '0,1,2')
     print(Train_result(model_dir = out_model_dir))
-
