@@ -10,10 +10,6 @@ import cv2
 import time
 import traceback
 
-########################################################################################################################################################################################################
-##############################################################################      im2rec.py       ####################################################################################################
-########################################################################################################################################################################################################
-
 def list_image(root, recursive, exts, out):
     i = 0
     if recursive:
@@ -123,12 +119,6 @@ def image_encode(args, i, item, q_out):
             margin = (img.shape[1] - img.shape[0]) / 2;
             img = img[:, margin:margin + img.shape[0]]
     if args.resize:
-#        if img.shape[0] > img.shape[1]:
-#            newsize = (args.resize, int(img.shape[0] * args.resize / img.shape[1]))
-#        else:
-#            newsize = (int(img.shape[1] * args.resize / img.shape[0]), args.resize)
-#        img = cv2.resize(img, newsize)
-#        print('({},{})'.format(args.resize, args.resize))
         img = cv2.resize(img, (args.resize, args.resize))
 
     try:
@@ -239,9 +229,6 @@ def make_info(out_dataset_dir, **kwargs):
             image_info.write('{}={}\n'.format(key,kwargs[key]))
     return
 
-########################################################################################################################################################################################################
-##############################################################################      Dataset.py      ####################################################################################################
-########################################################################################################################################################################################################
 
 def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
     if framework == 4:
@@ -257,7 +244,7 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         make_info(out_dataset_dir, channel = 3, size = resize)
 
         args = parse_args(in_dataset_dir, out_dataset_dir, resize)
-        make_list(args) # make dataset.lst file
+        make_list(args)
 
         if os.path.isdir(args.out):
             working_dir = args.out
@@ -298,8 +285,8 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
                     record.write_idx(item[0], s)
                     if cnt % 1000 == 0:
                         cur_time = time.time()
-                        logger.info('time:{0:0.10f}, count:{1}'.format(cur_time - pre_time, cnt)) # multi .log file when multi .lst file exist
-                        pre_time = cur_time
+                        logger.info('time:{0:0.10f}, count:{1}'.format(cur_time - pre_time, cnt)) 
+                    pre_time = cur_time
                     cnt += 1
         if not count:
             print('Did not find and list file with prefix %s'%args.out)
@@ -326,15 +313,8 @@ def Dataset_result(out_dataset_dir):
     return found_dataset
 
 
-# for windows settings
-#in_dataset_dir = 'D:\Github\dataset\img\mydataset'
-#out_dataset_dir = 'D:\Github\dataset\img\mydataset\out'
-
-# for linux settings
 in_dataset_dir = '/root/git/dataset/img'
 out_dataset_dir = in_dataset_dir + '/../out_dataset'
-#in_dataset_dir = '/root/mxnet/example/image-classification/data'
-#out_dataset_dir = in_dataset_dir + '/out_dataset'
 
 if __name__ == '__main__':
 
@@ -343,3 +323,4 @@ if __name__ == '__main__':
                    resize = 16,
                    framework = 4)
     print(Dataset_result(out_dataset_dir))
+

@@ -10,9 +10,6 @@ import Dataset
 import network
 import re
 
-########################################################################################################################################################################################################
-##############################################################################      data.py         ####################################################################################################
-########################################################################################################################################################################################################
 def add_data_args(parser):
     data = parser.add_argument_group('Data', 'the input images')
     data.add_argument('--data-train', type=str, help='the training data')
@@ -160,9 +157,6 @@ def get_rec_iter(args, kv=None):
         part_index          = rank)
     return (train, val)
 
-########################################################################################################################################################################################################
-##############################################################################       fit.py        ####################################################################################################
-########################################################################################################################################################################################################
 def _get_lr_scheduler(args, kv):
     if 'lr_factor' not in args or args.lr_factor >= 1:
         return (args.lr, None)
@@ -196,10 +190,8 @@ def _load_model(args, rank=0):
 def _save_model(args, rank=0):
     if args.model_prefix is None:
         return None
-#    dst_dir = os.path.dirname(args.model_prefix)
     dst_dir = os.path.join(args.model_prefix,args.network)
     if not os.path.isdir(args.model_prefix):
-#        os.mkdir(dst_dir)
         os.makedirs(args.model_prefix)
     return mx.callback.do_checkpoint(dst_dir if rank == 0 else "%s-%d" % (
         args.model_prefix, rank))
@@ -318,7 +310,6 @@ def fit(args, network, data_loader, **kwargs):
     else:
         initializer = mx.init.Xavier(
             rnd_type='gaussian', factor_type="in", magnitude=2)
-    # initializer   = mx.init.Xavier(factor_type="in", magnitude=2.34),
 
     # evaluation metrices
     eval_metrics = ['accuracy']
@@ -371,10 +362,6 @@ def read_info(file):
          
     return kwargs
 
-########################################################################################################################################################################################################
-##############################################################################      Train.py        ####################################################################################################
-########################################################################################################################################################################################################
-
 
 def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, network_name, devs):
     if framework == 4:
@@ -402,10 +389,10 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         num_classes = read_num(label_file)
         
         args = read_info(os.path.join(out_dataset_dir,'image_info.txt'))
-        image_shape    = '{},{},{}'.format(int(args['channel']),int(args['size']),int(args['size']))#'3,32,32',
+        image_shape    = '{},{},{}'.format(int(args['channel']),int(args['size']),int(args['size']))
        
         parser.set_defaults(
-            network        = network_name,#
+            network        = network_name,
             num_layers     = 100,
             # data
             data_train     = data_train,
@@ -423,7 +410,7 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
             disp_batches   = int(num_examples/mb_size/1),
             )
         args = parser.parse_args()
-        args.model_prefix=out_model_dir # maybe change abs_path
+        args.model_prefix=out_model_dir 
 
         from importlib import import_module
         net = import_module('network.'+args.network)
@@ -439,12 +426,6 @@ def Train_result(model_dir):
 
     return os.listdir(model_dir)
 
-
-# for windows settings
-#in_dataset_dir = 'D:\Github\dataset\img\mydataset'
-#out_dataset_dir = 'D:\Github\dataset\img\mydataset\out'
-
-# for linux settings
 in_dataset_dir = Dataset.in_dataset_dir
 out_dataset_dir = Dataset.out_dataset_dir
 out_model_dir = Dataset.out_dataset_dir + '/model'
@@ -459,3 +440,4 @@ if __name__ == '__main__':
                  network_name = 'lenet', 
                  devs = '0,1,2')
     print(Train_result(model_dir = out_model_dir))
+
