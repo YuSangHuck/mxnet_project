@@ -426,12 +426,12 @@ def Train_result(model_dir):
 
     return os.listdir(model_dir)
 
+
 in_dataset_dir = Dataset.in_dataset_dir
 out_dataset_dir = Dataset.out_dataset_dir
 out_model_dir = Dataset.out_dataset_dir + '/model'
 
 if __name__ == '__main__':
-
     Train_create(dataset_dir = out_dataset_dir, 
                  framework = 4, 
                  out_model_dir = out_model_dir, 

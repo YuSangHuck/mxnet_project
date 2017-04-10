@@ -317,7 +317,6 @@ in_dataset_dir = '/root/git/dataset/img'
 out_dataset_dir = in_dataset_dir + '/../out_dataset'
 
 if __name__ == '__main__':
-
     Dataset_create(in_dataset_dir = in_dataset_dir,
                    out_dataset_dir = out_dataset_dir,
                    resize = 16,
