@@ -257,7 +257,6 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         make_info(out_dataset_dir, channel = 3, size = resize)
 
         args = parse_args(in_dataset_dir, out_dataset_dir, resize)
-        
         make_list(args) # make dataset.lst file
 
         if os.path.isdir(args.out):
@@ -305,7 +304,8 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         if not count:
             print('Did not find and list file with prefix %s'%args.out)
 
-        return print('Dataset creating finished')
+        print('Dataset creating finished')
+        return True
 
 def Dataset_result(out_dataset_dir):
     found_dir = os.path.exists(out_dataset_dir)
