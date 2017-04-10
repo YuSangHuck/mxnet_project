@@ -403,7 +403,7 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         
         args = read_info(os.path.join(out_dataset_dir,'image_info.txt'))
         image_shape    = '{},{},{}'.format(int(args['channel']),int(args['size']),int(args['size']))#'3,32,32',
-
+       
         parser.set_defaults(
             network        = network_name,#
             num_layers     = 100,
@@ -430,6 +430,8 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         sym = net.get_symbol(**vars(args))
         print(args.image_shape)
         fit(args, sym, get_rec_iter)
+        print('Training is finished')
+        return True
 
 def Train_result(model_dir):
     if not os.path.exists(model_dir):
