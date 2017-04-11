@@ -374,21 +374,21 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         set_data_aug_level(parser, 2)
 
         num_examples = 0
-        label_file = [labels for labels in Dataset.Dataset_result(out_dataset_dir) if 'labels.txt' in labels][0]
-        if any('dataset.' in split for split in Dataset.Dataset_result(out_dataset_dir)):
-            data_train = [data for data in Dataset.Dataset_result(out_dataset_dir) if '.rec' in data][0]
+        label_file = [labels for labels in Dataset.Dataset_result(dataset_dir) if 'labels.txt' in labels][0]
+        if any('dataset.' in split for split in Dataset.Dataset_result(dataset_dir)):
+            data_train = [data for data in Dataset.Dataset_result(dataset_dir) if '.rec' in data][0]
             data_val = None
-            lst = [lst for lst in Dataset.Dataset_result(out_dataset_dir) if '.lst' in lst]
+            lst = [lst for lst in Dataset.Dataset_result(dataset_dir) if '.lst' in lst]
         else:
-            data = [data for data in Dataset.Dataset_result(out_dataset_dir) if '.rec' in data]
+            data = [data for data in Dataset.Dataset_result(dataset_dir) if '.rec' in data]
             data_train = [train for train in data if 'train.rec' in train][0]
             data_val = [val for val in data if 'test.rec' in val][0]
-            lst = [lst for lst in Dataset.Dataset_result(out_dataset_dir) if '.lst' in lst]
+            lst = [lst for lst in Dataset.Dataset_result(dataset_dir) if '.lst' in lst]
         for lstfile in lst:
             num_examples += read_num(lstfile)
         num_classes = read_num(label_file)
         
-        args = read_info(os.path.join(out_dataset_dir,'image_info.txt'))
+        args = read_info(os.path.join(dataset_dir,'image_info.txt'))
         image_shape    = '{},{},{}'.format(int(args['channel']),int(args['size']),int(args['size']))
        
         parser.set_defaults(
@@ -428,11 +428,11 @@ def Train_result(model_dir):
 
 
 in_dataset_dir = Dataset.in_dataset_dir
-out_dataset_dir = Dataset.out_dataset_dir
+dataset_dir = Dataset.out_dataset_dir
 out_model_dir = Dataset.out_dataset_dir + '/model'
 
 if __name__ == '__main__':
-    Train_create(dataset_dir = out_dataset_dir, 
+    Train_create(dataset_dir = dataset_dir, 
                  framework = 4, 
                  out_model_dir = out_model_dir, 
                  max_epochs = 5, 
