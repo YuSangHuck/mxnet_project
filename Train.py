@@ -389,8 +389,8 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
             num_examples += read_num(lstfile)
         num_classes = read_num(label_file)
         
-        args = read_info(os.path.join(dataset_dir,'image_info.txt'))
-        image_shape    = '{},{},{}'.format(int(args['channel']),int(args['size']),int(args['size']))
+        args = read_info(os.path.join(dataset_dir,'image_info.txt')) # read img_info
+        image_shape    = '{},{},{}'.format(int(args['channel']),int(args['size']),int(args['size'])) # set image_shape
        
         parser.set_defaults(
             network        = network_name,
