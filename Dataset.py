@@ -167,13 +167,13 @@ def write_worker(q_out, fname, working_dir):
                 pre_time = cur_time
             count += 1
 
-def parse_args(in_dataset_dir, out_dataset_dir, resize):
+def parse_args():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description='Create an image list or \
         make a record database by reading from an image list')
-    parser.add_argument('--root', default=in_dataset_dir, help='path to folder containing images.')
-    parser.add_argument('--out', default=out_dataset_dir, help='path to folder output dataset.')
+    parser.add_argument('--root', default='/', help='path to folder containing images.')
+    parser.add_argument('--out', default='/', help='path to folder output dataset.')
 
     cgroup = parser.add_argument_group('Options for creating image lists')
     cgroup.add_argument('--list', type=bool, default=True,
@@ -219,7 +219,6 @@ def parse_args(in_dataset_dir, out_dataset_dir, resize):
         help='Whether to also pack multi dimensional label in the record file')
     args = parser.parse_args()
 
-    args.resize = resize
     return args
 
 def make_info(out_dataset_dir, **kwargs):
@@ -231,29 +230,26 @@ def make_info(out_dataset_dir, **kwargs):
 
 
 def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
-    if framework == 4:
-        if not os.path.exists(in_dataset_dir):
-            return print('Dataset directory is Wrong.')
+    if framework == 4: # check mxnet?
+        if not (os.path.exists(in_dataset_dir) and os.listdir(in_dataset_dir)): # check input_dataset
+            return print('in dataset is Wrong.')
     
-        if not os.listdir(in_dataset_dir):
-            return print('Dataset is not found.')
-    
-        if not os.path.exists(out_dataset_dir):
+        if not os.path.exists(out_dataset_dir): # check output-dataset directory
             os.makedirs(out_dataset_dir)
 
-        make_info(out_dataset_dir, channel = 3, size = resize)
+        make_info(out_dataset_dir, channel = 3, size = resize) # make information. key=keyvalue. used to Train.py
 
-        args = parse_args(in_dataset_dir, out_dataset_dir, resize)
-        make_list(args)
+        args = parse_args() # set default args for making Dataset 
+        args.root = in_dataset_dir
+        args.out = out_dataset_dir
+        args.resize = resize
+        make_list(args) # make list_file(.lst) -> used to make record_file(.rec)
 
-        if os.path.isdir(args.out):
-            working_dir = args.out
-        else:
-            working_dir = os.path.dirname(args.out)
+        working_dir = args.out # set working_dir. make record_file(.rec) at working_dir
         files = [os.path.join(working_dir, fname) for fname in os.listdir(working_dir)
-                    if os.path.isfile(os.path.join(working_dir, fname))]
-        count = 0
-        cnt = 0
+                    if os.path.isfile(os.path.join(working_dir, fname))] # files = [abs_fnames]
+        count = 0 # total list_file(.lst) number
+        cnt = 0 # total image number
         logger = logging.getLogger('single_process')
         filehandler = logging.FileHandler(out_dataset_dir+'/create_val_db.log','w')
         streamhandler = logging.StreamHandler()
@@ -265,24 +261,24 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         logger.setLevel(logging.DEBUG)
         
         for fname in files:
-            if fname.startswith(args.out) and fname.endswith('.lst'):
+            if fname.startswith(args.out) and fname.endswith('.lst'): # find list_file(.lst) of [fnames]
                 count += 1
-                image_list = read_list(fname)
+                image_list = read_list(fname) # read list_file(.lst) 
                 # -- write_record -- #
                 import queue
                 q_out = queue.Queue()
                 fname = os.path.basename(fname)
-                fname_rec = os.path.splitext(fname)[0] + '.rec'
-                fname_idx = os.path.splitext(fname)[0] + '.idx'
+                fname_rec = os.path.splitext(fname)[0] + '.rec' # fname.rec
+                fname_idx = os.path.splitext(fname)[0] + '.idx' # fname.idx
                 record = mx.recordio.MXIndexedRecordIO(os.path.join(working_dir, fname_idx),
-                                                        os.path.join(working_dir, fname_rec), 'w')
+                                                        os.path.join(working_dir, fname_rec), 'w') # Read/write RecordIO format supporting random access
                 pre_time = time.time()
                 for i, item in enumerate(image_list):
-                    image_encode(args, i, item, q_out)
+                    image_encode(args, i, item, q_out) # i:number, item:[0number,1path,2label], q_out:Queue / img -> encoding,mx.recordio.pack_img -> Queue
                     if q_out.empty():
                         continue
-                    _, s, _ = q_out.get()
-                    record.write_idx(item[0], s)
+                    _, s, _ = q_out.get() # s=mx.recordio.pack_img
+                    record.write_idx(item[0], s) # write record_file(.rec) with index(.idx)
                     if cnt % 1000 == 0:
                         cur_time = time.time()
                         logger.info('time:{0:0.10f}, count:{1}'.format(cur_time - pre_time, cnt)) 
@@ -321,5 +317,5 @@ if __name__ == '__main__':
                    out_dataset_dir = out_dataset_dir,
                    resize = 16,
                    framework = 4)
-    print(Dataset_result(out_dataset_dir))
+#    print(Dataset_result(out_dataset_dir))
 

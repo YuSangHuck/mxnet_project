@@ -364,16 +364,17 @@ def read_info(file):
 
 
 def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, network_name, devs):
-    if framework == 4:
+    if framework == 4: # check mxnet?
         parser = argparse.ArgumentParser(description='Train',
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-        add_fit_args(parser) 
-        add_data_args(parser)
-        add_data_aug_args(parser)
-        set_data_aug_level(parser, 2)
+        add_fit_args(parser) # set default args for fit 
+        add_data_args(parser) # set default args for data 
+        add_data_aug_args(parser) # set default args for data_augmentation 
+        set_data_aug_level(parser, 2) # set default args for augmentation_level
 
         num_examples = 0
+        # set label_file(labels.txt), record_file(.rec), list_file(.lst), num_example, num_classes
         label_file = [labels for labels in Dataset.Dataset_result(dataset_dir) if 'labels.txt' in labels][0]
         if any('dataset.' in split for split in Dataset.Dataset_result(dataset_dir)):
             data_train = [data for data in Dataset.Dataset_result(dataset_dir) if '.rec' in data][0]
@@ -393,7 +394,6 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
        
         parser.set_defaults(
             network        = network_name,
-            num_layers     = 100,
             # data
             data_train     = data_train,
             data_val       = data_val,
@@ -402,7 +402,7 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
             image_shape    = image_shape, 
             pad_size       = 0,
             # train
-            gpus          = devs,
+#            gpus          = devs,
             batch_size     = mb_size,
             num_epochs     = max_epochs,
             lr             = .005,
