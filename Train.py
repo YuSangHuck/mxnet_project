@@ -10,16 +10,16 @@ import Dataset
 import network
 import re
 
-##########		in = 				#########
-#											#
-#											#
-##########		return =			#########
-#											#
-#											#
-##########		explain				#########
-#											#
-#											#
-##########							#########
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def add_data_args(parser):
     data = parser.add_argument_group('Data', 'the input images')
     data.add_argument('--data-train', type=str, help='the training data')
@@ -40,16 +40,16 @@ def add_data_args(parser):
                       help='data type: float32 or float16')
     return data
 
-##########		in = 				#########
-#											#
-#											#
-##########		return =			#########
-#											#
-#											#
-##########		explain				#########
-#											#
-#											#
-##########							#########
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def add_data_aug_args(parser):
     aug = parser.add_argument_group(
         'Image augmentations', 'implemented in src/io/image_aug_default.cc')
@@ -75,16 +75,16 @@ def add_data_aug_args(parser):
                      help='min ratio to scale, should >= img_size/input_shape. otherwise use --pad-size')
     return aug
 
-##########		in = 				#########
-#											#
-#											#
-##########		return =			#########
-#											#
-#											#
-##########		explain				#########
-#											#
-#											#
-##########							#########
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def set_data_aug_level(aug, level):
     if level >= 1:
         aug.set_defaults(random_crop=1, random_mirror=1)
@@ -127,16 +127,16 @@ class SyntheticDataIter(DataIter):
     def reset(self):
         self.cur_iter = 0
 
-##########		in = 				#########
-#											#
-#											#
-##########		return =			#########
-#											#
-#											#
-##########		explain				#########
-#											#
-#											#
-##########							#########
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def get_rec_iter(args, kv=None):
     image_shape = tuple([int(l) for l in args.image_shape.split(',')])
     dtype = np.float32;
@@ -197,16 +197,16 @@ def get_rec_iter(args, kv=None):
         part_index          = rank)
     return (train, val)
 
-##########		in = 				#########
-#											#
-#											#
-##########		return =			#########
-#											#
-#											#
-##########		explain				#########
-#											#
-#											#
-##########							#########
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def _get_lr_scheduler(args, kv):
     if 'lr_factor' not in args or args.lr_factor >= 1:
         return (args.lr, None)
@@ -225,16 +225,16 @@ def _get_lr_scheduler(args, kv):
     steps = [epoch_size * (x-begin_epoch) for x in step_epochs if x-begin_epoch > 0]
     return (lr, mx.lr_scheduler.MultiFactorScheduler(step=steps, factor=args.lr_factor))
 
-##########		in = 				#########
-#											#
-#											#
-##########		return =			#########
-#											#
-#											#
-##########		explain				#########
-#											#
-#											#
-##########							#########
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def _load_model(args, rank=0):
     if 'load_epoch' not in args or args.load_epoch is None:
         return (None, None, None)
@@ -247,16 +247,16 @@ def _load_model(args, rank=0):
     logging.info('Loaded model %s_%04d.params', model_prefix, args.load_epoch)
     return (sym, arg_params, aux_params)
 
-##########		in = 				#########
-#											#
-#											#
-##########		return =			#########
-#											#
-#											#
-##########		explain				#########
-#											#
-#											#
-##########							#########
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def _save_model(args, rank=0):
     if args.model_prefix is None:
         return None
@@ -266,16 +266,16 @@ def _save_model(args, rank=0):
     return mx.callback.do_checkpoint(dst_dir if rank == 0 else "%s-%d" % (
         args.model_prefix, rank))
 
-##########		in = 				#########
-#											#
-#											#
-##########		return =			#########
-#											#
-#											#
-##########		explain				#########
-#											#
-#											#
-##########							#########
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def add_fit_args(parser):
     """
     parser : argparse.ArgumentParser
@@ -320,16 +320,16 @@ def add_fit_args(parser):
                        help='1 means test reading speed without training')
     return train
 
-##########		in = 				#########
-#											#
-#											#
-##########		return =			#########
-#											#
-#											#
-##########		explain				#########
-#											#
-#											#
-##########							#########
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def fit(args, network, data_loader, **kwargs):
     """
     train a model
@@ -429,16 +429,16 @@ def fit(args, network, data_loader, **kwargs):
         allow_missing      = True,
         monitor            = monitor)
 
-##########		in = 				#########
-#											#
-#											#
-##########		return =			#########
-#											#
-#											#
-##########		explain				#########
-#											#
-#											#
-##########							#########
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def read_num(file):
     num = 0
     with open(file) as file:
@@ -449,16 +449,16 @@ def read_num(file):
             num += 1
     return num
 
-##########		in = 				#########
-#											#
-#											#
-##########		return =			#########
-#											#
-#											#
-##########		explain				#########
-#											#
-#											#
-##########							#########
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def read_info(file):
     kwargs = {}
     with open(file) as info:
@@ -473,16 +473,16 @@ def read_info(file):
     return kwargs
 
 
-##########		in = 				#########
-#											#
-#											#
-##########		return =			#########
-#											#
-#											#
-##########		explain				#########
-#											#
-#											#
-##########							#########
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, network_name, devs):
     if framework == 4: # check mxnet?
         parser = argparse.ArgumentParser(description='Train',
@@ -540,16 +540,16 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         print('Training is finished')
         return True
 
-##########		in = 				#########
-#											#
-#											#
-##########		return =			#########
-#											#
-#											#
-##########		explain				#########
-#											#
-#											#
-##########							#########
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def Train_result(model_dir):
     if not os.path.exists(model_dir):
         return print('model_dir is not found.')
