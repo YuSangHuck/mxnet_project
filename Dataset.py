@@ -20,31 +20,23 @@ import traceback
 #																	 			#
 #																				#
 ####################											#################
-def list_image(root, recursive, exts, out):
+def list_image(root, exts, out):
     i = 0
-    if recursive:
-        cat = {}
-        for path, dirs, files in os.walk(root, followlinks=True):
-            dirs.sort()
-            files.sort()
-            for fname in files:
-                fpath = os.path.join(path, fname)
-                suffix = os.path.splitext(fname)[1].lower()
-                if os.path.isfile(fpath) and (suffix in exts):
-                    if path not in cat:
-                        cat[path] = len(cat)
-                    yield (i, os.path.relpath(fpath, root), cat[path])
-                    i += 1
-        with open(out+'/labels.txt','w') as labels:
-            for k, v in sorted(cat.items(), key=lambda x: x[1]):
-                labels.write(os.path.basename(os.path.relpath(k, root))+'\n')
-    else:
-        for fname in sorted(os.listdir(root)):
-            fpath = os.path.join(root, fname)
+    cat = {}
+    for path, dirs, files in os.walk(root, followlinks=True):
+        dirs.sort()
+        files.sort()
+        for fname in files:
+            fpath = os.path.join(path, fname)
             suffix = os.path.splitext(fname)[1].lower()
             if os.path.isfile(fpath) and (suffix in exts):
-                yield (i, os.path.relpath(fpath, root), 0)
+                if path not in cat:
+                    cat[path] = len(cat)
+                yield (i, os.path.relpath(fpath, root), cat[path])
                 i += 1
+    with open(out+'/labels.txt','w') as labels:
+        for k, v in sorted(cat.items(), key=lambda x: x[1]):
+            labels.write(os.path.basename(os.path.relpath(k, root))+'\n')
 
 ####################					in = 					#################
 #													 				 			#
@@ -65,10 +57,10 @@ def write_list(path_out, image_list):
             line += '%s\n' % item[1]
             fout.write(line)
 
-####################					in = 					#################
+####################					in = args				#################
 #													 				 			#
 #																	 			#
-####################				return =					#################
+####################				return = 					#################
 #																	 			#
 #																				#
 ####################				explain						#################
@@ -76,30 +68,34 @@ def write_list(path_out, image_list):
 #																				#
 ####################											#################
 def make_list(args):
-    image_list = list_image(args.root, args.recursive, args.exts, args.out)
+    image_list = list_image(args.root, args.exts, args.out)
     image_list = list(image_list)
-    if args.shuffle is True:
-        random.seed(100)
-        random.shuffle(image_list)
-    N = len(image_list)
-    chunk_size = (N + args.chunks - 1) / args.chunks
-    for i in range(args.chunks):
-        chunk = image_list[i * int(chunk_size):(i + 1) * int(chunk_size)]
-        if args.chunks > 1:
-            str_chunk = '_%d' % i
-        else:
-            str_chunk = ''
-        sep = int(chunk_size * args.train_ratio)
-        sep_test = int(chunk_size * args.test_ratio)
+    random.seed(100)
+    random.shuffle(image_list)
+    size = len(image_list)
+
+#    chunk_size = (size + args.chunks - 1) / args.chunks
+#    for i in range(args.chunks):
+#        chunk = image_list[i * int(chunk_size):(i + 1) * int(chunk_size)]
+#        sep = int(chunk_size * args.train_ratio)
+#        sep_test = int(chunk_size * args.test_ratio)
+#         
+#        if args.train_ratio == 1.0:
+#            write_list(args.out+'/dataset' + '.lst', chunk)
+#        else:
+#            if args.test_ratio:
+#                write_list(args.out+'/dataset' + '_test.lst', chunk[:sep_test])
+#            if args.train_ratio + args.test_ratio < 1.0:
+#                write_list(args.out+'/dataset' + '_val.lst', chunk[sep_test + sep:])
+#            write_list(args.out+'/dataset' + '_train.lst', chunk[sep_test:sep_test + sep])
+
+    sep = int(size * args.train_ratio)
          
-        if args.train_ratio == 1.0:
-            write_list(args.out+'/dataset' + '.lst', chunk)
-        else:
-            if args.test_ratio:
-                write_list(args.out+'/dataset' + '_test.lst', chunk[:sep_test])
-            if args.train_ratio + args.test_ratio < 1.0:
-                write_list(args.out+'/dataset' + '_val.lst', chunk[sep_test + sep:])
-            write_list(args.out+'/dataset' + '_train.lst', chunk[sep_test:sep_test + sep])
+    if args.train_ratio == 1.0:
+        write_list(args.out+'/dataset' + '.lst', image_list)
+    else:
+        write_list(args.out+'/dataset' + '_val.lst', image_list[sep:])
+        write_list(args.out+'/dataset' + '_train.lst', image_list[:sep])
 
 ####################					in = 					#################
 #													 				 			#
@@ -267,12 +263,6 @@ def parse_args():
                         help='Ratio of images to use for training.')
     cgroup.add_argument('--test-ratio', type=float, default=0.,
                         help='Ratio of images to use for testing.')
-    cgroup.add_argument('--recursive', type=bool, default=True,
-                        help='If true recursively walk through subdirs and assign an unique label\
-        to images in each folder. Otherwise only include images in the root folder\
-        and give them label 0.')
-    cgroup.add_argument('--shuffle', type=bool, default=True, help='If this is set as True, \
-        im2rec will randomize the image order in <prefix>.lst')
 
     rgroup = parser.add_argument_group('Options for creating database')
     rgroup.add_argument('--pass-through', type=bool, default=False,
