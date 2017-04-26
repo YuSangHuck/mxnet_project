@@ -10,6 +10,16 @@ import cv2
 import time
 import traceback
 
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def list_image(root, recursive, exts, out):
     i = 0
     if recursive:
@@ -36,6 +46,16 @@ def list_image(root, recursive, exts, out):
                 yield (i, os.path.relpath(fpath, root), 0)
                 i += 1
 
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def write_list(path_out, image_list):
     with open(path_out, 'w') as fout:
         for i, item in enumerate(image_list):
@@ -45,6 +65,16 @@ def write_list(path_out, image_list):
             line += '%s\n' % item[1]
             fout.write(line)
 
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def make_list(args):
     image_list = list_image(args.root, args.recursive, args.exts, args.out)
     image_list = list(image_list)
@@ -71,6 +101,16 @@ def make_list(args):
                 write_list(args.out+'/dataset' + '_val.lst', chunk[sep_test + sep:])
             write_list(args.out+'/dataset' + '_train.lst', chunk[sep_test:sep_test + sep])
 
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def read_list(path_in):
     with open(path_in) as fin:
         while True:
@@ -81,6 +121,16 @@ def read_list(path_in):
             item = [int(line[0])] + [line[-1]] + [float(i) for i in line[1:-1]]
             yield item
 
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def image_encode(args, i, item, q_out):
     fullpath = os.path.join(args.root, item[1])
 
@@ -130,6 +180,16 @@ def image_encode(args, i, item, q_out):
         q_out.put((i, None, item))
         return
 
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def read_worker(args, q_in, q_out):
     while True:
         deq = q_in.get()
@@ -138,6 +198,16 @@ def read_worker(args, q_in, q_out):
         i, item = deq
         image_encode(args, i, item, q_out)
 
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def write_worker(q_out, fname, working_dir):
     pre_time = time.time()
     count = 0
@@ -167,6 +237,16 @@ def write_worker(q_out, fname, working_dir):
                 pre_time = cur_time
             count += 1
 
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def parse_args():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -221,6 +301,16 @@ def parse_args():
 
     return args
 
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def make_info(out_dataset_dir, **kwargs):
     abs_path_file = os.path.join(out_dataset_dir,'image_info.txt')
     with open(abs_path_file,'w') as image_info:
@@ -229,6 +319,16 @@ def make_info(out_dataset_dir, **kwargs):
     return
 
 
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
     if framework == 4: # check mxnet?
         if not (os.path.exists(in_dataset_dir) and os.listdir(in_dataset_dir)): # check input_dataset
@@ -290,6 +390,16 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         print('Dataset creating finished')
         return True
 
+####################					in = 					#################
+#													 				 			#
+#																	 			#
+####################				return =					#################
+#																	 			#
+#																				#
+####################				explain						#################
+#																	 			#
+#																				#
+####################											#################
 def Dataset_result(out_dataset_dir):
     found_dir = os.path.exists(out_dataset_dir)
     found_files = os.listdir(out_dataset_dir)
