@@ -10,17 +10,55 @@ import cv2
 import time
 import traceback
 
-####################					in = 					#################
-#													 				 			#
-#																	 			#
-####################				return =					#################
-#																	 			#
+####################					in = args				#################
+#																				#
+# args.root = in_dataset_dir											 		#
+# args.out = out_dataset_dir													#
+# args.exts = '.jpeg','.png','.bmp','.jpg'										#
+# args.train_ratio = between 0,1 -> 0~1											#
+#																				#
+####################				return = X					#################
+#																				#
+####################				explain						#################
+#																				#
+# using in_dataset_dir images -> make list_file(.lst)				 			#
+# calling list_image,write_list function										#
+#																				#
+# if train_ratio = 1.															#
+#     output is 'dataset.lst'													#
+# if train_ratio = 0.8 -> val_ratio = 0.2										#
+#     output is 'dataset_train.lst, dataset_val.lst'							#
+#																				#
+def make_list(args):
+    image_list = list_image(args.root, args.out, args.exts)
+    image_list = list(image_list)
+    random.seed(100)
+    random.shuffle(image_list)
+    size = len(image_list)
+    sep = int(size * args.train_ratio)
+         
+    if args.train_ratio == 1.0:
+        write_list(args.out+'/dataset' + '.lst', image_list)
+    else:
+        write_list(args.out+'/dataset' + '_val.lst', image_list[sep:])
+        write_list(args.out+'/dataset' + '_train.lst', image_list[:sep])
+
+####################				in = root,out,exts			#################
+# 													 				 			#
+# root = in_dataset_dir												 			#
+# out = out_dataset_dir															#
+# exts = extensoin ('.jpeg','.bmp', ...)										#
+#																				#
+####################				return = generator			#################
+#																				#
+# generator -> list [(example_number, rel_fname, label)					 		#
 #																				#
 ####################				explain						#################
 #																	 			#
+# return generator(example_num, rel_fname, label)								#
+# and write 'out_dataset_dir/labels.txt' 										#
 #																				#
-####################											#################
-def list_image(root, exts, out):
+def list_image(root, out, exts):
     i = 0
     cat = {}
     for path, dirs, files in os.walk(root, followlinks=True):
@@ -38,16 +76,20 @@ def list_image(root, exts, out):
         for k, v in sorted(cat.items(), key=lambda x: x[1]):
             labels.write(os.path.basename(os.path.relpath(k, root))+'\n')
 
-####################					in = 					#################
-#													 				 			#
+####################		in = path_out, image_list			#################
+#																				#
+# path_out = out_dataset_dir													#
+# image_list = list_file							 				 			#
 #																	 			#
-####################				return =					#################
+####################				return = X					#################
 #																	 			#
+# No return but write list_file(.lst)											#
 #																				#
 ####################				explain						#################
 #																	 			#
+# write list_file(.lst)															#
+# line = 'example_num, label, rel_fname)										#
 #																				#
-####################											#################
 def write_list(path_out, image_list):
     with open(path_out, 'w') as fout:
         for i, item in enumerate(image_list):
@@ -57,56 +99,19 @@ def write_list(path_out, image_list):
             line += '%s\n' % item[1]
             fout.write(line)
 
-####################					in = args				#################
-#													 				 			#
+####################					in = path_in			#################
+#																				#
+# path_in = in_list_file							  				 			#
 #																	 			#
-####################				return = 					#################
-#																	 			#
+####################				return = item				#################
+#																				#
+# item = (example_num, rel_fname, label)							 			#
 #																				#
 ####################				explain						#################
 #																	 			#
+# read list_file(.lst)															#
+# line -> item																	#
 #																				#
-####################											#################
-def make_list(args):
-    image_list = list_image(args.root, args.exts, args.out)
-    image_list = list(image_list)
-    random.seed(100)
-    random.shuffle(image_list)
-    size = len(image_list)
-
-#    chunk_size = (size + args.chunks - 1) / args.chunks
-#    for i in range(args.chunks):
-#        chunk = image_list[i * int(chunk_size):(i + 1) * int(chunk_size)]
-#        sep = int(chunk_size * args.train_ratio)
-#        sep_test = int(chunk_size * args.test_ratio)
-#         
-#        if args.train_ratio == 1.0:
-#            write_list(args.out+'/dataset' + '.lst', chunk)
-#        else:
-#            if args.test_ratio:
-#                write_list(args.out+'/dataset' + '_test.lst', chunk[:sep_test])
-#            if args.train_ratio + args.test_ratio < 1.0:
-#                write_list(args.out+'/dataset' + '_val.lst', chunk[sep_test + sep:])
-#            write_list(args.out+'/dataset' + '_train.lst', chunk[sep_test:sep_test + sep])
-
-    sep = int(size * args.train_ratio)
-         
-    if args.train_ratio == 1.0:
-        write_list(args.out+'/dataset' + '.lst', image_list)
-    else:
-        write_list(args.out+'/dataset' + '_val.lst', image_list[sep:])
-        write_list(args.out+'/dataset' + '_train.lst', image_list[:sep])
-
-####################					in = 					#################
-#													 				 			#
-#																	 			#
-####################				return =					#################
-#																	 			#
-#																				#
-####################				explain						#################
-#																	 			#
-#																				#
-####################											#################
 def read_list(path_in):
     with open(path_in) as fin:
         while True:
@@ -117,16 +122,20 @@ def read_list(path_in):
             item = [int(line[0])] + [line[-1]] + [float(i) for i in line[1:-1]]
             yield item
 
-####################					in = 					#################
-#													 				 			#
+####################			in = args,i,item,q_out			#################
+#																				#
+# args = pass_rhtough,color,centor_crop,resize,quality							#
+# item = (example_num, rel_fname, label)										#
+# q_out = Queue														 			#
 #																	 			#
-####################				return =					#################
-#																	 			#
+####################				return = X					#################
+# 																				#
+# No return but put encoding image information to Queue							#
 #																				#
 ####################				explain						#################
 #																	 			#
+# raw_image -> packing(encoding_images) -> Queue								#
 #																				#
-####################											#################
 def image_encode(args, i, item, q_out):
     fullpath = os.path.join(args.root, item[1])
 
@@ -186,52 +195,6 @@ def image_encode(args, i, item, q_out):
 #																	 			#
 #																				#
 ####################											#################
-def read_worker(args, q_in, q_out):
-    while True:
-        deq = q_in.get()
-        if deq is None:
-            break
-        i, item = deq
-        image_encode(args, i, item, q_out)
-
-####################					in = 					#################
-#													 				 			#
-#																	 			#
-####################				return =					#################
-#																	 			#
-#																				#
-####################				explain						#################
-#																	 			#
-#																				#
-####################											#################
-def write_worker(q_out, fname, working_dir):
-    pre_time = time.time()
-    count = 0
-    fname = os.path.basename(fname)
-    fname_rec = os.path.splitext(fname)[0] + '.rec'
-    fname_idx = os.path.splitext(fname)[0] + '.idx'
-    record = mx.recordio.MXIndexedRecordIO(os.path.join(working_dir, fname_idx),
-                                           os.path.join(working_dir, fname_rec), 'w')
-    buf = {}
-    more = True
-    while more:
-        deq = q_out.get()
-        if deq is not None:
-            i, s, item = deq
-            buf[i] = (s, item)
-        else:
-            more = False
-        while count in buf:
-            s, item = buf[count]
-            del buf[count]
-            if s is not None:
-                record.write_idx(item[0], s)
-
-            if count % 1000 == 0:
-                cur_time = time.time()
-                print('time:', cur_time - pre_time, ' count:', count)
-                pre_time = cur_time
-            count += 1
 
 ####################					in = 					#################
 #													 				 			#
