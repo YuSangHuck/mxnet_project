@@ -10,12 +10,14 @@ import Dataset
 import network
 import re
 
-####################					in = 					#################
+####################					in = parser				#################
 #													 				 			#
-####################				return =					#################
+####################				return = 					#################
 #																	 			#
 ####################				explain						#################
-#																	 			#
+# 																	 			#
+# set default data args for Train												#
+#																				#
 def add_data_args(parser):
     data = parser.add_argument_group('Data', 'the input images')
     data.add_argument('--data-train', type=str, help='the training data')
@@ -32,12 +34,14 @@ def add_data_args(parser):
                       help='number of threads for data decoding')
     return data
 
-####################					in = 					#################
+####################					in = parser				#################
 #													 				 			#
 ####################				return =					#################
 #																				#
 ####################				explain						#################
 #																				#
+# set default agumentation args													#
+#																				# 
 def add_data_aug_args(parser):
     data_aug = parser.add_argument_group(
         'Image augmentations', 'implemented in src/io/image_aug_default.cc')
@@ -63,12 +67,16 @@ def add_data_aug_args(parser):
                      help='min ratio to scale, should >= img_size/input_shape. otherwise use --pad-size')
     return data_aug
 
-####################					in = 					#################
+####################					in = aug				#################
 #													 				 			#
+# parser.aug ~~																	#
+#																				#
 ####################				return =					#################
 #																	 			#
 ####################				explain						#################
 #																	 			#
+# set augmentation level														#
+#																				#
 def set_data_aug_level(aug, level):
     if level >= 1:
         aug.set_defaults(random_crop=1, random_mirror=1)
@@ -77,12 +85,14 @@ def set_data_aug_level(aug, level):
     if level >= 3:
         aug.set_defaults(max_random_rotate_angle=10, max_random_shear_ratio=0.1, max_random_aspect_ratio=0.25)
 
-####################					in = 					#################
+####################					in = args,kv			#################
 #													 				 			#
-####################				return =					#################
+####################				return = (train,val)		#################
 #																	 			#
 ####################				explain						#################
 #																	 			#
+# args -> mx.io.ImageRecordIter() -> return(train, val)							#
+#																				#
 def get_rec_iter(args, kv=None):
     image_shape = tuple([int(l) for l in args.image_shape.split(',')])
     dtype = np.float32;
@@ -146,7 +156,7 @@ def _get_lr_scheduler(args, kv):
     if 'lr_factor' not in args or args.lr_factor >= 1:
         return (args.lr, None)
     epoch_size = args.num_examples / args.batch_size
-    if 'dist' in args.kv_store:
+    if 'dist' in args.kv_store: # multiple machine
         epoch_size /= kv.num_workers
     begin_epoch = args.load_epoch if args.load_epoch else 0
     step_epochs = [int(l) for l in args.lr_step_epochs.split(',')]
@@ -239,8 +249,6 @@ def add_fit_args(parser):
                        help='load the model on an epoch using the model-load-prefix')
     train.add_argument('--top-k', type=int, default=0,
                        help='report the top-k accuracy. 0 means no report.')
-    train.add_argument('--test-io', type=int, default=0,
-                       help='1 means test reading speed without training')
     return train
 
 ####################					in = 					#################
@@ -261,16 +269,6 @@ def fit(args, network, data_loader, **kwargs):
 
     # data iterators
     (train, val) = data_loader(args, kv)
-    if args.test_io:
-        tic = time.time()
-        for i, batch in enumerate(train):
-            for j in batch.data:
-                j.wait_to_read()
-            if (i+1) % args.disp_batches == 0:
-                logging.info('Batch [%d]\tSpeed: %.2f samples/sec' % (
-                    i, args.disp_batches*args.batch_size/(time.time()-tic)))
-                tic = time.time()
-        return
 
     # load model
     if 'arg_params' in kwargs and 'aux_params' in kwargs:
@@ -416,8 +414,8 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
             num_examples += read_num(lstfile)
         num_classes = read_num(label_file)
         
-        args = read_info(os.path.join(dataset_dir,'image_info.txt')) # read img_info
-        image_shape    = '{},{},{}'.format(int(args['channel']),int(args['size']),int(args['size'])) # set image_shape
+        image_info = read_info(os.path.join(dataset_dir,'image_info.txt')) # read img_info
+        image_shape    = '{},{},{}'.format(int(image_info['channel']),int(image_info['size']),int(image_info['size'])) # set image_shape
        
         parser.set_defaults(
             network        = network_name,
