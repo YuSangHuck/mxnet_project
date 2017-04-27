@@ -124,7 +124,7 @@ def read_list(path_in):
 
 ####################			in = args,i,item,q_out			#################
 #																				#
-# args = pass_rhtough,color,centor_crop,resize,quality							#
+# args = color,centor_crop,resize,quality										#
 # item = (example_num, rel_fname, label)										#
 # q_out = Queue														 			#
 #																	 			#
@@ -144,17 +144,6 @@ def image_encode(args, i, item, q_out):
     else:
         header = mx.recordio.IRHeader(0, item[2], item[0], 0)
 
-    if args.pass_through:
-        try:
-            with open(fullpath) as fin:
-                img = fin.read()
-            s = mx.recordio.pack(header, img)
-            q_out.put((i, s, item))
-        except Exception as e:
-            traceback.print_exc()
-            print('pack_img error:', item[1], e)
-            q_out.put((i, None, item))
-        return
     try:
         img = cv2.imread(fullpath, args.color)
     except:
@@ -185,27 +174,18 @@ def image_encode(args, i, item, q_out):
         q_out.put((i, None, item))
         return
 
-####################					in = 					#################
+####################					in = X 					#################
 #													 				 			#
-#																	 			#
-####################				return =					#################
-#																	 			#
+####################				return = args				#################
+# 																	 			#
+#      = root,out																#
+# args = cgroup(exts,train-ratio) for list_file(.lst)							#
+#      = rgroup(resize,center-crop,quality,color,encoding,pack-label)			#
 #																				#
 ####################				explain						#################
 #																	 			#
+# set defaul args for making list_file(.lst) and record_file(.rec)				#
 #																				#
-####################											#################
-
-####################					in = 					#################
-#													 				 			#
-#																	 			#
-####################				return =					#################
-#																	 			#
-#																				#
-####################				explain						#################
-#																	 			#
-#																				#
-####################											#################
 def parse_args():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -214,33 +194,20 @@ def parse_args():
     parser.add_argument('--root', default='/', help='path to folder containing images.')
     parser.add_argument('--out', default='/', help='path to folder output dataset.')
 
-    cgroup = parser.add_argument_group('Options for creating image lists')
-    cgroup.add_argument('--list', type=bool, default=True,
-                        help='If this is set im2rec will create image list(s) by traversing root folder\
-        and output to <prefix>.lst.\
-        Otherwise im2rec will read <prefix>.lst and create a database at <prefix>.rec')
+    cgroup = parser.add_argument_group('Options for creating image lists file')
     cgroup.add_argument('--exts', type=list, default=['.jpeg', '.jpg', '.png', '.bmp'],
                         help='list of acceptable image extensions.')
-    cgroup.add_argument('--chunks', type=int, default=1, help='number of chunks.')
     cgroup.add_argument('--train-ratio', type=float, default=1.,
                         help='Ratio of images to use for training.')
-    cgroup.add_argument('--test-ratio', type=float, default=0.,
-                        help='Ratio of images to use for testing.')
 
-    rgroup = parser.add_argument_group('Options for creating database')
-    rgroup.add_argument('--pass-through', type=bool, default=False,
-                        help='whether to skip transformation and save image as is')
+    rgroup = parser.add_argument_group('Options for creating record file')
     rgroup.add_argument('--resize', type=int, default=50,
                         help='resize the shorter edge of image to the newsize, original images will\
         be packed by default.')
     rgroup.add_argument('--center-crop', type=bool, default=False,
                         help='specify whether to crop the center image to make it rectangular.')
-    rgroup.add_argument('--quality', type=int, default=95,
+    rgroup.add_argument('--quality', type=int, default=9,
                         help='JPEG quality for encoding, 1-100; or PNG compression for encoding, 1-9')
-    rgroup.add_argument('--num-thread', type=int, default=1,
-                        help='number of thread to use for encoding. order of images will be different\
-        from the input list if >1. the input list will be modified to match the\
-        resulting order.')
     rgroup.add_argument('--color', type=int, default=1, choices=[-1, 0, 1],
                         help='specify the color mode of the loaded image.\
         1: Loads a color image. Any transparency of image will be neglected. It is the default flag.\
@@ -254,16 +221,17 @@ def parse_args():
 
     return args
 
-####################					in = 					#################
+####################		in = out_dataset_dir,kwargs			#################
 #													 				 			#
-#																	 			#
-####################				return =					#################
-#																	 			#
+# out_dataset_dir = out_dataset_dir												#
+# kwargs = resize, channel														#
+#																				#
+####################				return = X					#################
 #																				#
 ####################				explain						#################
-#																	 			#
 #																				#
-####################											#################
+# write information for Train													#
+#																				#
 def make_info(out_dataset_dir, **kwargs):
     abs_path_file = os.path.join(out_dataset_dir,'image_info.txt')
     with open(abs_path_file,'w') as image_info:
@@ -272,16 +240,22 @@ def make_info(out_dataset_dir, **kwargs):
     return
 
 
-####################					in = 					#################
+####################					in						 #################
 #													 				 			#
-#																	 			#
-####################				return =					#################
-#																	 			#
+# in_dataset_dir = raw dataset directory										#
+# out_dataset_dir = out dataset directory										#
+# resize = resizing scale														#
+# framework = MXnet,CNTK, ...													#
+#																				#
+####################				return = True/False			#################
 #																				#
 ####################				explain						#################
 #																	 			#
+# in & out directory check														#
+# set default args for making Dataset											#
+# make list_file(.lst) -> make record_file(.rec)								#
+# logging by 1000																#
 #																				#
-####################											#################
 def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
     if framework == 4: # check mxnet?
         if not (os.path.exists(in_dataset_dir) and os.listdir(in_dataset_dir)): # check input_dataset
@@ -343,16 +317,19 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         print('Dataset creating finished')
         return True
 
-####################					in = 					#################
+####################					in = out_dataset_dir	#################
 #													 				 			#
+# out_dataset_dir = out_dataset directory										#
+#																				#
+####################				return = found_dataset		#################
 #																	 			#
-####################				return =					#################
-#																	 			#
+# found_dataset created by Dataset_create										#
 #																				#
 ####################				explain						#################
 #																	 			#
+# out_dir & out_dataset check													#
+# return found_dataset															#
 #																				#
-####################											#################
 def Dataset_result(out_dataset_dir):
     found_dir = os.path.exists(out_dataset_dir)
     found_files = os.listdir(out_dataset_dir)
