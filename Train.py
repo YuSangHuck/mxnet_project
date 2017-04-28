@@ -146,12 +146,16 @@ def get_rec_iter(args, kv=None):
         part_index          = rank)
     return (train, val)
 
-####################					in = 					#################
+####################					in =args,kv				#################
 #													 				 			#
-####################				return =					#################
+####################	return = mx.lr_scheduler.MultiFactorScheduler	#################
 #																	 			#
 ####################				explain						#################
 #																	 			#
+# args.lr : initial learning rate												#
+# args.lr_factor : ratio to reduce lr on each step								#
+# args.lr_step_epochs : epochs to reduce the lr									#
+#																				#
 def _get_lr_scheduler(args, kv):
     if 'lr_factor' not in args or args.lr_factor >= 1:
         return (args.lr, None)
@@ -170,30 +174,14 @@ def _get_lr_scheduler(args, kv):
     steps = [epoch_size * (x-begin_epoch) for x in step_epochs if x-begin_epoch > 0]
     return (lr, mx.lr_scheduler.MultiFactorScheduler(step=steps, factor=args.lr_factor))
 
-####################					in = 					#################
+####################					in = args				#################
 #													 				 			#
-####################				return =					#################
+####################				return = save '~.params'	#################
 #																	 			#
 ####################				explain						#################
 #																	 			#
-def _load_model(args, rank=0):
-    if 'load_epoch' not in args or args.load_epoch is None:
-        return (None, None, None)
-    assert args.model_prefix is not None
-    model_prefix = args.model_prefix
-    if rank > 0 and os.path.exists("%s-%d-symbol.json" % (model_prefix, rank)):
-        model_prefix += "-%d" % (rank)
-    sym, arg_params, aux_params = mx.model.load_checkpoint(
-        model_prefix, args.load_epoch)
-    logging.info('Loaded model %s_%04d.params', model_prefix, args.load_epoch)
-    return (sym, arg_params, aux_params)
-
-####################					in = 					#################
-#													 				 			#
-####################				return =					#################
-#																	 			#
-####################				explain						#################
-#																	 			#
+# save model -> 'args.model_prefic/~-epoch.params'								#
+#																				#
 def _save_model(args, rank=0):
     if args.model_prefix is None:
         return None
@@ -209,6 +197,8 @@ def _save_model(args, rank=0):
 #																	 			#
 ####################				explain						#################
 #																	 			#
+# set default args for Train													#
+#																				#
 def add_fit_args(parser):
     """
     parser : argparse.ArgumentParser
@@ -243,12 +233,8 @@ def add_fit_args(parser):
                        help='show progress for every n batches')
     train.add_argument('--model-prefix', type=str,
                        help='model prefix')
-    parser.add_argument('--monitor', dest='monitor', type=int, default=0,
-                        help='log network parameters every N iters if larger than 0')
     train.add_argument('--load-epoch', type=int,
                        help='load the model on an epoch using the model-load-prefix')
-    train.add_argument('--top-k', type=int, default=0,
-                       help='report the top-k accuracy. 0 means no report.')
     return train
 
 ####################					in = 					#################
@@ -269,15 +255,6 @@ def fit(args, network, data_loader, **kwargs):
 
     # data iterators
     (train, val) = data_loader(args, kv)
-
-    # load model
-    if 'arg_params' in kwargs and 'aux_params' in kwargs:
-        arg_params = kwargs['arg_params']
-        aux_params = kwargs['aux_params']
-    else:
-        sym, arg_params, aux_params = _load_model(args, kv.rank)
-        if sym is not None:
-            assert sym.tojson() == network.tojson()
 
     # save model
     checkpoint = _save_model(args, kv.rank)
@@ -309,8 +286,6 @@ def fit(args, network, data_loader, **kwargs):
             'wd' : args.wd,
             'lr_scheduler': lr_scheduler}
 
-    monitor = mx.mon.Monitor(args.monitor, pattern=".*") if args.monitor > 0 else None
-
     if args.network == 'alexnet':
         # AlexNet will not converge using Xavier
         initializer = mx.init.Normal()
@@ -320,8 +295,6 @@ def fit(args, network, data_loader, **kwargs):
 
     # evaluation metrices
     eval_metrics = ['accuracy']
-    if args.top_k > 0:
-        eval_metrics.append(mx.metric.create('top_k_accuracy', top_k=args.top_k))
 
     # callbacks that run after each batch
     batch_end_callbacks = [mx.callback.Speedometer(args.batch_size, args.disp_batches)]
@@ -339,12 +312,9 @@ def fit(args, network, data_loader, **kwargs):
         optimizer          = args.optimizer,
         optimizer_params   = optimizer_params,
         initializer        = initializer,
-        arg_params         = arg_params,
-        aux_params         = aux_params,
         batch_end_callback = batch_end_callbacks,
         epoch_end_callback = checkpoint,
-        allow_missing      = True,
-        monitor            = monitor)
+        allow_missing      = True)
 
 ####################					in = 					#################
 #													 				 			#
