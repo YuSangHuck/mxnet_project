@@ -243,6 +243,10 @@ def add_fit_args(parser):
 #																				#
 ####################				explain						#################
 #																	 			#
+# train by setted args -> call model.fit										#
+# set dataset by data_loader													#
+# save result by _save_model													#
+#																				#
 def fit(args, network, data_loader, **kwargs):
     """
     train a model
@@ -256,21 +260,21 @@ def fit(args, network, data_loader, **kwargs):
     # data iterators
     (train, val) = data_loader(args, kv)
 
-    # save model
+    # save model(train result)
     checkpoint = _save_model(args, kv.rank)
     
-    # logging
+    # logging form
     format = '[%(levelname)s:%(asctime)s],%(message)s'
     logging.basicConfig(filename = os.path.join(args.model_prefix,'create_train_db.log'),
                         filemode = 'w',
                         format = format,
                         level=logging.DEBUG)
     
-    # devices for training
+    # devices for training(CPU or GPU)
     devs = mx.cpu() if args.gpus is None or args.gpus is '' else [
         mx.gpu(int(i)) for i in args.gpus.split(',')]
 
-    # learning rate
+    # set learning rate
     lr, lr_scheduler = _get_lr_scheduler(args, kv)
 
     # create model
