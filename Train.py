@@ -191,7 +191,7 @@ def _save_model(args, rank=0):
     return mx.callback.do_checkpoint(dst_dir if rank == 0 else "%s-%d" % (
         args.model_prefix, rank))
 
-####################					in = 					#################
+####################					in = parser				#################
 #													 				 			#
 ####################				return =					#################
 #																	 			#
