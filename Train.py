@@ -32,7 +32,7 @@ def add_data_args(parser):
     data.add_argument('--num-examples', type=int, help='the number of training examples')
     data.add_argument('--data-nthreads', type=int, default=4,
                       help='number of threads for data decoding')
-    return data
+    return 
 
 ####################					in = parser				#################
 #													 				 			#
@@ -65,7 +65,7 @@ def add_data_aug_args(parser):
                      help='max ratio to scale')
     data_aug.add_argument('--min-random-scale', type=float, default=1,
                      help='min ratio to scale, should >= img_size/input_shape. otherwise use --pad-size')
-    return data_aug
+    return 
 
 ####################					in = aug				#################
 #													 				 			#
@@ -235,7 +235,7 @@ def add_fit_args(parser):
                        help='model prefix')
     train.add_argument('--load-epoch', type=int,
                        help='load the model on an epoch using the model-load-prefix')
-    return train
+    return 
 
 ####################					in = 					#################
 #													 				 			#
@@ -316,12 +316,18 @@ def fit(args, network, data_loader, **kwargs):
         epoch_end_callback = checkpoint,
         allow_missing      = True)
 
-####################					in = 					#################
+####################					in = file				#################
 #													 				 			#
-####################				return =					#################
+# text format file																#
+#																				#
+####################				return = number				#################
 #																	 			#
+# how many line number															#
+#																				#
 ####################				explain						#################
 #																	 			#
+# read text_file -> return how many lines in the file							#
+#																				#
 def read_num(file):
     num = 0
     with open(file) as file:
@@ -332,12 +338,21 @@ def read_num(file):
             num += 1
     return num
 
-####################					in = 					#################
+####################					in = file				#################
 #													 				 			#
-####################				return =					#################
+# text format file																#
+#																				#
+####################				return = kwargs				#################
 #																	 			#
+# return dictonary																#
+#																				#
 ####################				explain						#################
 #																	 			#
+# read text format file															#
+# key(word)=value(integer)														#
+#																				#
+# -> kwargs={key1:value1, key2:value2, key3:value3, ...}						#
+#																				#
 def read_info(file):
     kwargs = {}
     with open(file) as info:
