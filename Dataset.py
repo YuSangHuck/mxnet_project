@@ -280,7 +280,7 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         logger = logging.getLogger('single_process')
         filehandler = logging.FileHandler(out_dataset_dir+'/create_val_db.log','w')
         streamhandler = logging.StreamHandler()
-        formatter = logging.Formatter('[%(filename)s|%(asctime)s] %(message)s')
+        formatter = logging.Formatter('[%(levelname)s|%(asctime)s] %(message)s')
         filehandler.setFormatter(formatter)
         streamhandler.setFormatter(formatter)
         logger.addHandler(filehandler)
