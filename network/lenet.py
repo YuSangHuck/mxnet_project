@@ -7,9 +7,7 @@ import mxnet as mx
 
 def get_symbol(add_stn=False, **kwargs):
     data = mx.symbol.Variable('data')
-    if(add_stn):
-        data = mx.sym.SpatialTransformer(data=data, loc=get_loc(data), target_shape = (28,28),
-                                         transform_type="affine", sampler_type="bilinear")
+
     # first conv
     conv1 = mx.symbol.Convolution(data=data, kernel=(5,5), num_filter=20)
     tanh1 = mx.symbol.Activation(data=conv1, act_type="tanh")
