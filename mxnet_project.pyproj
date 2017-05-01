@@ -26,6 +26,20 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="main.py" />
+    <Compile Include="network\alexnet.py" />
+    <Compile Include="network\alexnet_fp16.py" />
+    <Compile Include="network\googlenet.py" />
+    <Compile Include="network\inception-bn.py" />
+    <Compile Include="network\inception-resnet-v2.py" />
+    <Compile Include="network\inception-v3.py" />
+    <Compile Include="network\lenet.py" />
+    <Compile Include="network\mlp.py" />
+    <Compile Include="network\my_model.py" />
+    <Compile Include="network\resnet.py" />
+    <Compile Include="network\resnet_fp16.py" />
+    <Compile Include="network\resnext.py" />
+    <Compile Include="network\vgg.py" />
+    <Compile Include="network\__init__.py" />
     <Compile Include="Train.py">
       <SubType>Code</SubType>
     </Compile>
