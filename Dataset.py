@@ -9,6 +9,7 @@ import argparse
 import cv2
 import time
 import traceback
+import queue
 
 ####################					in = args				#################
 #																				#
@@ -292,7 +293,6 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
                 count += 1
                 image_list = read_list(fname) # read list_file(.lst) 
                 # -- write_record -- #
-                import queue
                 q_out = queue.Queue()
                 fname = os.path.basename(fname)
                 fname_rec = os.path.splitext(fname)[0] + '.rec' # fname.rec
