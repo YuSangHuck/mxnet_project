@@ -429,7 +429,6 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
 
         net = import_module('network.'+args.network)
         sym = net.get_symbol(**vars(args))
-        print(args.image_shape)
         fit(args, sym, get_rec_iter)
         print('Training is finished')
         return True

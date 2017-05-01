@@ -5,7 +5,7 @@ Proceedings of the IEEE (1998)
 """
 import mxnet as mx
 
-def get_symbol(num_classes=10, add_stn=False, **kwargs):
+def get_symbol(add_stn=False, **kwargs):
     data = mx.symbol.Variable('data')
     if(add_stn):
         data = mx.sym.SpatialTransformer(data=data, loc=get_loc(data), target_shape = (28,28),
@@ -25,7 +25,7 @@ def get_symbol(num_classes=10, add_stn=False, **kwargs):
     fc1 = mx.symbol.FullyConnected(data=flatten, num_hidden=500)
     tanh3 = mx.symbol.Activation(data=fc1, act_type="tanh")
     # second fullc
-    fc2 = mx.symbol.FullyConnected(data=tanh3, num_hidden=num_classes)
+    fc2 = mx.symbol.FullyConnected(data=tanh3, num_hidden=kwargs['num_classes'])
     # loss
     lenet = mx.symbol.SoftmaxOutput(data=fc2, name='softmax')
     return lenet
