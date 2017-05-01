@@ -1,5 +1,6 @@
 import mxnet as mx
 from mxnet.io import DataBatch, DataIter
+from importlib import import_module
 import numpy as np
 import logging
 logger = logging.getLogger('Train')
@@ -426,7 +427,6 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         args = parser.parse_args()
         args.model_prefix=out_model_dir 
 
-        from importlib import import_module
         net = import_module('network.'+args.network)
         sym = net.get_symbol(**vars(args))
         print(args.image_shape)
