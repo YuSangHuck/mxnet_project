@@ -380,6 +380,12 @@ def read_info(file):
 #																	 			#
 def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, network_name, devs):
     if framework == 4: # check mxnet?
+        if not os.path.exists(dataset_dir):
+            return print("Dataset directory is wrong")
+
+        if not os.path.exists(out_model_dir):
+            os.makedirs(out_model_dir)
+
         parser = argparse.ArgumentParser(description='Train',
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
