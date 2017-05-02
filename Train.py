@@ -442,9 +442,11 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
 def Train_result(model_dir):
     if not os.path.exists(model_dir):
         return print('model_dir is not found.')
-
-    return os.listdir(model_dir)
-
+    
+    result = os.listdir(model_dir)
+    result.sort()
+    
+    return result
 
 in_dataset_dir = Dataset.in_dataset_dir
 dataset_dir = Dataset.out_dataset_dir
