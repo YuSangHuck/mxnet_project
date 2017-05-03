@@ -317,7 +317,7 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         if not count:
             print('Did not find and list file with prefix %s'%args.out)
 
-        print('Dataset creating finished')
+        print('Dataset_create finish')
     return True
 
 ####################					in = out_dataset_dir	#################

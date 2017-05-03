@@ -436,7 +436,7 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         net = import_module('network.'+args.network)
         sym = net.get_symbol(**vars(args))
         fit(args, sym, get_rec_iter)
-        print('Training is finished')
+        print('Train_create finish')
         return True
 
 ####################					in = 					#################
