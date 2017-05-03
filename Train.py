@@ -93,7 +93,7 @@ def set_data_aug_level(aug, level):
 ####################				explain						#################
 #																	 			#
 # args -> mx.io.ImageRecordIter() -> return(train, val)							#
-#																				#
+# function that returns the train and val data iterators						#
 def get_rec_iter(args, kv=None):
     image_shape = tuple([int(l) for l in args.image_shape.split(',')])
     dtype = np.float32;
@@ -201,10 +201,6 @@ def _save_model(args, rank=0):
 # set default args for Train													#
 #																				#
 def add_fit_args(parser):
-    """
-    parser : argparse.ArgumentParser
-    return a parser added with args required by fit
-    """
     train = parser.add_argument_group('Training', 'model training')
     train.add_argument('--network', type=str,
                        help='the neural network to use')
@@ -249,19 +245,13 @@ def add_fit_args(parser):
 # save result by _save_model													#
 #																				#
 def fit(args, network, data_loader, **kwargs):
-    """
-    train a model
-    args : argparse returns
-    network : the symbol definition of the nerual network
-    data_loader : function that returns the train and val data iterators
-    """
     # kvstore
     kv = mx.kvstore.create(args.kv_store)
 
     # data iterators
     (train, val) = data_loader(args, kv)
 
-    # save model(train result)
+    # save model(train result), epoch_end_callback : callbacks that run after each epoch
     checkpoint = _save_model(args, kv.rank)
     
     # logging form
@@ -301,7 +291,7 @@ def fit(args, network, data_loader, **kwargs):
     # evaluation metrices
     eval_metrics = ['accuracy']
 
-    # callbacks that run after each batch
+    # batch_end_callback : callbacks that run after each batch
     batch_end_callbacks = [mx.callback.Speedometer(args.batch_size, args.disp_batches)]
     if 'batch_end_callback' in kwargs:
         cbs = kwargs['batch_end_callback']
@@ -379,7 +369,7 @@ def read_info(file):
 ####################				explain						#################
 #																	 			#
 def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, network_name, devs):
-    if framework == 4: # check mxnet?
+    if framework == 4: # check. is it mxnet?
         if not os.path.exists(dataset_dir):
             return print("Dataset directory is wrong")
 
@@ -406,8 +396,8 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
             data_train = [train for train in data if 'train.rec' in train][0]
             data_val = [val for val in data if 'test.rec' in val][0]
             lst = [lst for lst in Dataset.Dataset_result(dataset_dir) if '.lst' in lst]
-        for lstfile in lst:
-            num_examples += read_num(lstfile)
+        for lst_file in lst:
+            num_examples += read_num(lst_file)
         num_classes = read_num(label_file)
         
         image_info = read_info(os.path.join(dataset_dir,'image_info.txt')) # read img_info
@@ -423,7 +413,7 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
             image_shape    = image_shape, 
             pad_size       = 0,
             # train
-#            gpus          = devs,
+            gpus          = devs,
             batch_size     = mb_size,
             num_epochs     = max_epochs,
             lr             = .005,
@@ -437,7 +427,7 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         sym = net.get_symbol(**vars(args))
         fit(args, sym, get_rec_iter)
         print('Train_create finish')
-        return True
+    return True
 
 ####################					in = 					#################
 #													 				 			#

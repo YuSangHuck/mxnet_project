@@ -263,8 +263,6 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
     
         if not os.path.exists(out_dataset_dir): # check output-dataset directory
             os.makedirs(out_dataset_dir)
-        # make information. key=keyvalue. used to Train.py
-        make_info(out_dataset_dir, channel = 3, size = resize)
         
         # set default args for making Dataset 
         args = parse_args()
@@ -272,6 +270,9 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         args.out = out_dataset_dir
         args.resize = resize
 
+        # make information. key=keyvalue. used to Train.py
+        if args.color == 1:
+            make_info(out_dataset_dir, channel = 3, size = resize)
         # make list_file(.lst) -> used to make record_file(.rec)
         make_list(args) 
 
