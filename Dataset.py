@@ -165,7 +165,6 @@ def image_encode(args, i, item, q_out):
             img = img[:, margin:margin + img.shape[0]]
     if args.resize:
         img = cv2.resize(img, (args.resize, args.resize))
-
     try:
         s = mx.recordio.pack_img(header, img, quality=args.quality, img_fmt=args.encoding)
         q_out.put((i, s, item))
@@ -217,7 +216,7 @@ def parse_args():
     rgroup.add_argument('--encoding', type=str, default='.png', choices=['.jpg', '.png'],
                         help='specify the encoding of the images.')
     rgroup.add_argument('--pack-label', type=bool, default=False,
-        help='Whether to also pack multi dimensional label in the record file')
+                        help='Whether to also pack multi dimensional label in the record file')
     args = parser.parse_args()
 
     return args
@@ -258,22 +257,26 @@ def make_info(out_dataset_dir, **kwargs):
 # logging by 1000																#
 #																				#
 def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
-    if framework == 4: # check mxnet?
+    if framework == 4: # check. is it mxnet?
         if not (os.path.exists(in_dataset_dir) and os.listdir(in_dataset_dir)): # check input_dataset
             return print('in dataset is Wrong.')
     
         if not os.path.exists(out_dataset_dir): # check output-dataset directory
             os.makedirs(out_dataset_dir)
-
-        make_info(out_dataset_dir, channel = 3, size = resize) # make information. key=keyvalue. used to Train.py
-
-        args = parse_args() # set default args for making Dataset 
+        # make information. key=keyvalue. used to Train.py
+        make_info(out_dataset_dir, channel = 3, size = resize)
+        
+        # set default args for making Dataset 
+        args = parse_args()
         args.root = in_dataset_dir
         args.out = out_dataset_dir
         args.resize = resize
-        make_list(args) # make list_file(.lst) -> used to make record_file(.rec)
 
-        working_dir = args.out # set working_dir. make record_file(.rec) at working_dir
+        # make list_file(.lst) -> used to make record_file(.rec)
+        make_list(args) 
+
+        # set working_dir. make record_file(.rec) at working_dir
+        working_dir = args.out
         files = [os.path.join(working_dir, fname) for fname in os.listdir(working_dir)
                     if os.path.isfile(os.path.join(working_dir, fname))] # files = [abs_fnames]
         count = 0 # total list_file(.lst) number
@@ -315,7 +318,7 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
             print('Did not find and list file with prefix %s'%args.out)
 
         print('Dataset creating finished')
-        return True
+    return True
 
 ####################					in = out_dataset_dir	#################
 #													 				 			#
@@ -346,6 +349,7 @@ def Dataset_result(out_dataset_dir):
             found_file = os.path.join(out_dataset_dir,found_file)
             found_dataset.append(found_file)
     found_dataset.sort()
+
     return found_dataset
 
 
