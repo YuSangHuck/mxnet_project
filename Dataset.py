@@ -252,7 +252,7 @@ def make_info(out_dataset_dir, **kwargs):
 ####################				explain						#################
 #																	 			#
 # in & out directory check														#
-# set default args for making Dataset											#
+# set default dataset_args for making Dataset											#
 # make list_file(.lst) -> make record_file(.rec)								#
 # logging by 1000																#
 #																				#
@@ -264,20 +264,20 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         if not os.path.exists(out_dataset_dir): # check output-dataset directory
             os.makedirs(out_dataset_dir)
         
-        # set default args for making Dataset 
-        args = parse_args()
-        args.root = in_dataset_dir
-        args.out = out_dataset_dir
-        args.resize = resize
+        # set default dataset_args for making Dataset 
+        dataset_args = parse_args()
+        dataset_args.root = in_dataset_dir
+        dataset_args.out = out_dataset_dir
+        dataset_args.resize = resize
 
         # make information. key=keyvalue. used to Train.py
-        if args.color == 1:
+        if dataset_args.color == 1:
             make_info(out_dataset_dir, channel = 3, size = resize)
         # make list_file(.lst) -> used to make record_file(.rec)
-        make_list(args) 
+        make_list(dataset_args) 
 
         # set working_dir. make record_file(.rec) at working_dir
-        working_dir = args.out
+        working_dir = dataset_args.out
         files = [os.path.join(working_dir, fname) for fname in os.listdir(working_dir)
                     if os.path.isfile(os.path.join(working_dir, fname))] # files = [abs_fnames]
         count = 0 # total list_file(.lst) number
@@ -293,7 +293,7 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         logger.setLevel(logging.DEBUG)
         
         for fname in files:
-            if fname.startswith(args.out) and fname.endswith('.lst'): # find list_file(.lst) of [fnames]
+            if fname.startswith(dataset_args.out) and fname.endswith('.lst'): # find list_file(.lst) of [fnames]
                 count += 1
                 image_list = read_list(fname) # read list_file(.lst) 
                 # -- write_record -- #
@@ -305,7 +305,7 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
                                                         os.path.join(working_dir, fname_rec), 'w') # Read/write RecordIO format supporting random access
                 pre_time = time.time()
                 for i, item in enumerate(image_list):
-                    image_encode(args, i, item, q_out) # i:number, item:[0number,1path,2label], q_out:Queue / img -> encoding,mx.recordio.pack_img -> Queue
+                    image_encode(dataset_args, i, item, q_out) # i:number, item:[0number,1path,2label], q_out:Queue / img -> encoding,mx.recordio.pack_img -> Queue
                     if q_out.empty():
                         continue
                     _, s, _ = q_out.get() # s=mx.recordio.pack_img
@@ -316,7 +316,7 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
                     pre_time = cur_time
                     cnt += 1
         if not count:
-            print('Did not find and list file with prefix %s'%args.out)
+            print('Did not find and list file with prefix %s'%dataset_args.out)
 
         print('Dataset_create finish')
     return True
