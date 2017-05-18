@@ -295,7 +295,7 @@ def Dataset_create(in_dataset_dir, out_dataset_dir, resize, framework):
         for fname in files:
             if fname.startswith(dataset_args.out) and fname.endswith('.lst'): # find list_file(.lst) of [fnames]
                 count += 1
-                image_list = read_list(fname) # read list_file(.lst) 
+                image_list = read_list(fname) # read list_file(.lst) count,path,label
                 # -- write_record -- #
                 q_out = queue.Queue()
                 fname = os.path.basename(fname)
