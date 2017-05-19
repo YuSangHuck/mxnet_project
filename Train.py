@@ -117,19 +117,12 @@ def get_rec_iter(args, kv=None):
         return (train, None)
     val = mx.io.ImageRecordIter(
         path_imgrec         = args.data_val,
-        label_width         = 1,
         mean_r              = rgb_mean[0],
         mean_g              = rgb_mean[1],
         mean_b              = rgb_mean[2],
-        data_name           = 'data',
-        label_name          = 'softmax_label',
         batch_size          = args.batch_size,
         data_shape          = image_shape,
-        preprocess_threads  = args.data_nthreads,
-        rand_crop           = False,
-        rand_mirror         = False,
-        num_parts           = nworker,
-        part_index          = rank)
+        preprocess_threads  = args.data_nthreads)
     return (train, val)
 
 ####################					in =args,kv				#################
