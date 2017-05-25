@@ -368,12 +368,11 @@ def Train_create(dataset_dir, framework, out_model_dir, max_epochs, mb_size, net
         if any('dataset.' in split for split in Dataset.Dataset_result(dataset_dir)):
             data_train = [data for data in Dataset.Dataset_result(dataset_dir) if '.rec' in data][0]
             data_val = None
-            lst = [lst for lst in Dataset.Dataset_result(dataset_dir) if '.lst' in lst]
         else:
             data = [data for data in Dataset.Dataset_result(dataset_dir) if '.rec' in data]
             data_train = [train for train in data if 'train.rec' in train][0]
             data_val = [val for val in data if 'test.rec' in val][0]
-            lst = [lst for lst in Dataset.Dataset_result(dataset_dir) if '.lst' in lst]
+        lst = [lst for lst in Dataset.Dataset_result(dataset_dir) if '.lst' in lst]
         for lst_file in lst:
             num_examples += read_num(lst_file)
         num_classes = read_num(label_file)

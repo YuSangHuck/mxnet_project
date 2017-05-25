@@ -346,7 +346,7 @@ def Dataset_result(out_dataset_dir):
         return print('Dataset is not found')
     
     for found_file in found_files:
-        if os.path.splitext(found_file)[1] in ('.idx','.lst','.rec','.txt','.log'):
+        if os.path.splitext(found_file)[1] in ('.lst','.rec','.txt'):
             found_file = os.path.join(out_dataset_dir,found_file)
             found_dataset.append(found_file)
     found_dataset.sort()
