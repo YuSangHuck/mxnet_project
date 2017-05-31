@@ -276,7 +276,7 @@ def fit(args, network, data_loader, **kwargs):
         batch_end_callbacks += cbs if isinstance(cbs, list) else [cbs]
 
     # run
-    model.fit(train,
+    model.fit(train_data   = data,
         begin_epoch        = args.load_epoch if args.load_epoch else 0,
         num_epoch          = args.num_epochs,
         eval_data          = val,
