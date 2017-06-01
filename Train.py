@@ -240,8 +240,8 @@ def fit(args, network, data_loader, **kwargs):
                         level=logging.DEBUG)
     
     # devices for training(CPU or GPU)
-    devs = mx.cpu() if args.gpus is None or args.gpus is '' else [
-        mx.gpu(int(i)) for i in args.gpus.split(',')]
+    devs = mx.cpu() if args.gpus is None or args.gpus is '' \
+                    else [mx.gpu(int(i)) for i in args.gpus.split(',')]
 
     # set learning rate
     lr, lr_scheduler = _get_lr_scheduler(args, kv)
@@ -276,7 +276,7 @@ def fit(args, network, data_loader, **kwargs):
         batch_end_callbacks += cbs if isinstance(cbs, list) else [cbs]
 
     # run
-    model.fit(train_data   = data,
+    model.fit(train_data   = train,
         begin_epoch        = args.load_epoch if args.load_epoch else 0,
         num_epoch          = args.num_epochs,
         eval_data          = val,
